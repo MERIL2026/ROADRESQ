@@ -61,9 +61,7 @@ class Booking(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     status: Mapped[str] = mapped_column(
         String(40), nullable=False, default=BookingStatus.REQUESTED.value
     )
-    problem_description: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
+    problem_description: Mapped[str | None] = mapped_column(Text, nullable=True)
     scheduled_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, index=True
     )
@@ -82,9 +80,7 @@ class Booking(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     cancelled_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
-    cancellation_reason: Mapped[str | None] = mapped_column(
-        Text, nullable=True
-    )
+    cancellation_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
     customer: Mapped["User"] = relationship("User", back_populates="bookings")

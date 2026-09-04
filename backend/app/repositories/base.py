@@ -24,9 +24,7 @@ class BaseRepository(Generic[ModelT]):
         )
         return result.scalar_one_or_none()
 
-    async def list_all(
-        self, skip: int = 0, limit: int = 100
-    ) -> Sequence[ModelT]:
+    async def list_all(self, skip: int = 0, limit: int = 100) -> Sequence[ModelT]:
         """Fetch list of entities with pagination."""
         result = await self.session.execute(
             select(self.model).offset(skip).limit(limit)

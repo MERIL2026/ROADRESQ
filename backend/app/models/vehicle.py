@@ -42,6 +42,4 @@ class Vehicle(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         "Booking", back_populates="vehicle"
     )
 
-    __table_args__ = (
-        Index("ix_vehicles_registration_number", "registration_number"),
-    )
+    __table_args__ = (Index("ix_vehicles_registration_number", "registration_number"),)

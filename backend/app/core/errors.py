@@ -66,9 +66,7 @@ class ValidationError(AppError):
         )
 
 
-async def app_exception_handler(
-    request: Request, exc: AppError
-) -> JSONResponse:
+async def app_exception_handler(request: Request, exc: AppError) -> JSONResponse:
     """Formats AppError into standard API error envelope."""
     request_id = getattr(request.state, "request_id", "unknown")
     return JSONResponse(
@@ -84,9 +82,7 @@ async def app_exception_handler(
     )
 
 
-async def generic_exception_handler(
-    request: Request, exc: Exception
-) -> JSONResponse:
+async def generic_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Catches unhandled exceptions and hides internal stack traces."""
     request_id = getattr(request.state, "request_id", "unknown")
     return JSONResponse(

@@ -24,9 +24,7 @@ class User(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     first_name: Mapped[str] = mapped_column(String(80), nullable=False)
     last_name: Mapped[str | None] = mapped_column(String(80), nullable=True)
     phone: Mapped[str] = mapped_column(String(20), unique=True, nullable=False)
-    email: Mapped[str | None] = mapped_column(
-        String(255), unique=True, nullable=True
-    )
+    email: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     password_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[str] = mapped_column(
         String(30), nullable=False, default=UserStatus.ACTIVE.value
@@ -46,6 +44,4 @@ class User(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         "Booking", back_populates="customer"
     )
 
-    __table_args__ = (
-        Index("ix_users_role_status", "role", "status"),
-    )
+    __table_args__ = (Index("ix_users_role_status", "role", "status"),)

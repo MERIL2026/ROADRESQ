@@ -40,6 +40,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+
 # Correlation ID Middleware (X-Request-ID)
 @app.middleware("http")
 async def request_id_middleware(

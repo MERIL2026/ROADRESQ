@@ -1,13 +1,14 @@
 """${message}
 
 Revision ID: ${up_revision}
-Revises: ${down_revision | repr, empty}
+Revises: ${down_revision}
 Create Date: ${create_date}
 
 """
 from typing import Sequence, Union
 
 from alembic import op
+import geoalchemy2
 import sqlalchemy as sa
 ${imports if imports else ""}
 

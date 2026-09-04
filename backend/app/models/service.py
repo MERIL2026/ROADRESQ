@@ -19,15 +19,9 @@ class Service(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     name: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
     category: Mapped[str] = mapped_column(String(50), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    base_price: Mapped[Decimal | None] = mapped_column(
-        Numeric(12, 2), nullable=True
-    )
-    is_emergency: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )
+    base_price: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    is_emergency: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
     provider_services: Mapped[list["ProviderService"]] = relationship(
@@ -37,6 +31,4 @@ class Service(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         "Booking", back_populates="service"
     )
 
-    __table_args__ = (
-        Index("ix_services_category_active", "category", "is_active"),
-    )
+    __table_args__ = (Index("ix_services_category_active", "category", "is_active"),)

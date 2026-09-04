@@ -56,17 +56,13 @@ class Provider(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     rating_avg: Mapped[Decimal] = mapped_column(
         Numeric(3, 2), default=Decimal("0.00"), nullable=False
     )
-    rating_count: Mapped[int] = mapped_column(
-        Integer, default=0, nullable=False
-    )
+    rating_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     verification_status: Mapped[str] = mapped_column(
         String(30),
         nullable=False,
         default=ProviderVerificationStatus.PENDING.value,
     )
-    is_online: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
+    is_online: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     # Relationships
     user: Mapped["User"] = relationship("User", back_populates="provider_profile")
@@ -106,9 +102,7 @@ class ProviderDocument(Base, UUIDPrimaryKeyMixin):
         String(50), nullable=False, default=ProviderDocumentType.IDENTITY.value
     )
     file_url: Mapped[str] = mapped_column(Text, nullable=False)
-    document_number: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
+    document_number: Mapped[str | None] = mapped_column(String(100), nullable=True)
     status: Mapped[str] = mapped_column(
         String(30),
         nullable=False,
@@ -152,15 +146,9 @@ class ProviderService(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         nullable=False,
         index=True,
     )
-    price_from: Mapped[Decimal | None] = mapped_column(
-        Numeric(12, 2), nullable=True
-    )
-    price_to: Mapped[Decimal | None] = mapped_column(
-        Numeric(12, 2), nullable=True
-    )
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )
+    price_from: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    price_to: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     # Relationships
     provider: Mapped["Provider"] = relationship("Provider", back_populates="services")
@@ -192,9 +180,7 @@ class ProviderAvailability(Base, UUIDPrimaryKeyMixin):
     day_of_week: Mapped[int] = mapped_column(SmallInteger, nullable=False)
     start_time: Mapped[time] = mapped_column(Time, nullable=False)
     end_time: Mapped[time] = mapped_column(Time, nullable=False)
-    is_active: Mapped[bool] = mapped_column(
-        Boolean, default=True, nullable=False
-    )
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=utc_now, nullable=False
     )

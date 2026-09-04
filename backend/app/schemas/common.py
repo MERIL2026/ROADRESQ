@@ -18,7 +18,6 @@ class ResponseMeta(BaseModel):
     )
 
 
-
 class APIResponse(BaseModel, Generic[DataT]):
     data: DataT
     meta: ResponseMeta

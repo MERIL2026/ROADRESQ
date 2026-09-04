@@ -13,7 +13,9 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "postgres"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "roadresq_db"
-    DATABASE_URL: str = "postgresql+asyncpg://roadresq_user:roadresq_password@postgres:5432/roadresq_db"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://roadresq_user:roadresq_password@postgres:5432/roadresq_db"
+    )
 
     # Redis Cache & Presence Connection
     REDIS_HOST: str = "redis"
@@ -26,9 +28,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
-        extra="ignore"
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
 
