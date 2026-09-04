@@ -38,7 +38,9 @@ env/
 node_modules/
 .next/
 out/
+*.tsbuildinfo
 .nuxt/
+
 .vuepress/
 .cache/
 .parcel-cache/

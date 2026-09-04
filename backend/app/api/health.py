@@ -27,7 +27,7 @@ class ReadinessResponse(BaseModel):
 
 @router.get("", response_model=LivenessResponse, summary="Liveness Probe")
 async def liveness_probe() -> LivenessResponse:
-    """Basic liveness probe indicating the backend application service process is running."""
+    """Basic liveness probe indicating backend service status."""
     return LivenessResponse(
         status="ok",
         app_name=settings.APP_NAME,
@@ -37,11 +37,12 @@ async def liveness_probe() -> LivenessResponse:
 
 @router.get("/ready", response_model=ReadinessResponse, summary="Readiness Probe")
 async def readiness_probe(response: Response) -> ReadinessResponse:
-    """Readiness probe checking PostgreSQL + PostGIS database connection and Redis connection.
+    """Readiness probe checking PostgreSQL + PostGIS and Redis connection.
 
-    Returns HTTP 200 OK when all infrastructure dependencies are operational.
-    Returns HTTP 503 Service Unavailable if any critical service is degraded or offline.
+    Returns HTTP 200 OK when infrastructure dependencies are operational.
+    Returns HTTP 503 Service Unavailable if any critical service is offline.
     """
+
     db_health = await check_db_health()
     redis_health = await check_redis_health()
 

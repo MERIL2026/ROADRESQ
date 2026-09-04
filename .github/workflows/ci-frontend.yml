@@ -30,10 +30,11 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: 'apps/customer-web/package.json'
+          cache-dependency-path: 'apps/customer-web/package-lock.json'
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
+
 
       - name: Run Type Check
         run: npm run type-check
