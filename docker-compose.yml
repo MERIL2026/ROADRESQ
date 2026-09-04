@@ -1,0 +1,114 @@
+version: '3.8'
+
+networks:
+  roadresq-network:
+    driver: bridge
+
+volumes:
+  roadresq_postgres_data:
+    driver: local
+  roadresq_redis_data:
+    driver: local
+
+services:
+  # ==========================================
+  # PostgreSQL 16 Database + PostGIS 3.4
+  # ==========================================
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: roadresq_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-roadresq_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-roadresq_password}
+      POSTGRES_DB: ${POSTGRES_DB:-roadresq_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - roadresq_postgres_data:/var/lib/postgresql/data
+      - ./infra/docker/postgres/init-postgis.sql:/docker-entrypoint-initdb.d/01-init-postgis.sql
+    networks:
+      - roadresq-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-roadresq_user} -d ${POSTGRES_DB:-roadresq_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ==========================================
+  # Redis 7 Cache & Presence Store
+  # ==========================================
+  redis:
+    image: redis:7-alpine
+    container_name: roadresq_redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - roadresq_redis_data:/data
+    networks:
+      - roadresq-network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ==========================================
+  # FastAPI Backend Service (Python 3.12)
+  # ==========================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: roadresq_backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      APP_NAME: ${APP_NAME:-RoadResQ Backend API}
+      DEBUG: ${DEBUG:-true}
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://roadresq_user:roadresq_password@postgres:5432/roadresq_db}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_key_roadresq_2026_change_me}
+    volumes:
+      - ./backend:/app
+    networks:
+      - roadresq-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ==========================================
+  # Next.js Customer Web Application
+  # ==========================================
+  customer-web:
+    build:
+      context: ./apps/customer-web
+      dockerfile: Dockerfile
+    container_name: roadresq_customer_web
+    restart: unless-stopped
+    ports:
+      - "${CUSTOMER_WEB_PORT:-3000}:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    volumes:
+      - ./apps/customer-web:/app
+      - /app/node_modules
+      - /app/.next
+    networks:
+      - roadresq-network
+    depends_on:
+      - backend

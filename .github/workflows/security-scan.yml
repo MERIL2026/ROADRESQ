@@ -1,0 +1,41 @@
+name: Security & Secret Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  secret-scan:
+    name: Secret & Credential Leak Protection
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for Committed .env files
+        run: |
+          COMMITTED_ENV=$(git ls-files | grep -E '^\.env(\.local|\.production|\.staging)?$' || true)
+          if [ -n "$COMMITTED_ENV" ]; then
+            echo "❌ CRITICAL SECURITY ERROR: Real .env file detected in Git tracked files:"
+            echo "$COMMITTED_ENV"
+            exit 1
+          else
+            echo "✅ Pass: No committed .env files found in repository."
+          fi
+
+      - name: Scan for Sensitive API Key Patterns
+        run: |
+          echo "Scanning for accidental hardcoded API keys..."
+          FOUND_SECRETS=$(git grep -i -E '(AKIA[0-9A-Z]{16}|aws_secret_access_key|ghp_[a-zA-Z0-9]{36}|sk_live_[0-9a-zA-Z]{24})' -- ':!*.example' ':!docs/*' || true)
+          if [ -n "$FOUND_SECRETS" ]; then
+            echo "❌ CRITICAL SECURITY ERROR: Potential secret pattern found in code:"
+            echo "$FOUND_SECRETS"
+            exit 1
+          else
+            echo "✅ Pass: No hardcoded AWS/GitHub/Stripe keys detected."
+          fi

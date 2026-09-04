@@ -1,0 +1,31 @@
+# Set default behavior to automatic text conversion
+* text=auto
+
+# Source Code
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.js text eol=lf
+*.jsx text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+*.sh text eol=lf
+*.sql text eol=lf
+*.ini text eol=lf
+*.toml text eol=lf
+
+# Windows Scripts
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+
+# Binary Files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
