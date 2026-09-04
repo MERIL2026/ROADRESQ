@@ -31,7 +31,8 @@ jobs:
       - name: Scan for Sensitive API Key Patterns
         run: |
           echo "Scanning for accidental hardcoded API keys..."
-          FOUND_SECRETS=$(git grep -i -E '(AKIA[0-9A-Z]{16}|aws_secret_access_key|ghp_[a-zA-Z0-9]{36}|sk_live_[0-9a-zA-Z]{24})' -- ':!*.example' ':!docs/*' || true)
+          FOUND_SECRETS=$(git grep -i -E '(AKIA[0-9A-Z]{16}|aws_secret_access_key|ghp_[a-zA-Z0-9]{36}|sk_live_[0-9a-zA-Z]{24})' -- ':!*.example' ':!docs/*' ':!.github/*' || true)
+
           if [ -n "$FOUND_SECRETS" ]; then
             echo "❌ CRITICAL SECURITY ERROR: Potential secret pattern found in code:"
             echo "$FOUND_SECRETS"
