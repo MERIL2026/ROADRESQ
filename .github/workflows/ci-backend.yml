@@ -75,4 +75,5 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
           JWT_SECRET: ci_test_jwt_secret_roadresq
         run: |
+          alembic upgrade head
           pytest

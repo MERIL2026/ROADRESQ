@@ -70,8 +70,8 @@ services:
       APP_ENV: ${APP_ENV:-development}
       APP_NAME: ${APP_NAME:-RoadResQ Backend API}
       DEBUG: ${DEBUG:-true}
-      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://roadresq_user:roadresq_password@postgres:5432/roadresq_db}
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-roadresq_user}:${POSTGRES_PASSWORD:-roadresq_password}@postgres:5432/${POSTGRES_DB:-roadresq_db}
+      REDIS_URL: redis://redis:6379/0
       JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_key_roadresq_2026_change_me}
     volumes:
       - ./backend:/app
