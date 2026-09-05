@@ -6,7 +6,11 @@ from app.core.errors import ConflictError, NotFoundError
 from app.models.enums import AuditAction
 from app.models.vehicle import Vehicle
 from app.repositories.vehicle import VehicleRepository
-from app.schemas.vehicle import VehicleCreateRequest, VehicleListResponse, VehicleResponse
+from app.schemas.vehicle import (
+    VehicleCreateRequest,
+    VehicleListResponse,
+    VehicleResponse,
+)
 from app.services.audit_service import record_audit_event
 
 

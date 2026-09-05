@@ -1,8 +1,9 @@
 import uuid
 from datetime import UTC, datetime
-from typing import Any, ClassVar
+from typing import ClassVar
 
 from geoalchemy2.elements import WKTElement
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import (
@@ -337,6 +338,48 @@ class BookingService:
         total = await self.booking_repo.count_by_customer(
             customer_id=customer_id, status=status
         )
+
+        items = [BookingResponse.model_validate(b) for b in bookings]
+        return BookingListResponse(
+            bookings=items, total=total, page=page, page_size=page_size
+        )
+
+    async def list_all_bookings(
+        self,
+        status: str | None = None,
+        customer_id: uuid.UUID | None = None,
+        provider_id: uuid.UUID | None = None,
+        page: int = 1,
+        page_size: int = 20,
+    ) -> BookingListResponse:
+        """Admin: list all bookings platform-wide with optional filters."""
+        skip = (page - 1) * page_size
+
+        base_stmt = select(Booking)
+        count_stmt = select(func.count(Booking.id))
+
+        if status:
+            base_stmt = base_stmt.where(Booking.status == status)
+            count_stmt = count_stmt.where(Booking.status == status)
+        if customer_id:
+            base_stmt = base_stmt.where(Booking.customer_id == customer_id)
+            count_stmt = count_stmt.where(Booking.customer_id == customer_id)
+        if provider_id:
+            base_stmt = base_stmt.where(Booking.provider_id == provider_id)
+            count_stmt = count_stmt.where(Booking.provider_id == provider_id)
+
+        base_stmt = (
+            base_stmt
+            .order_by(Booking.created_at.desc())
+            .offset(skip)
+            .limit(page_size)
+        )
+
+        rows = await self.session.execute(base_stmt)
+        bookings = rows.scalars().all()
+
+        count_result = await self.session.execute(count_stmt)
+        total = count_result.scalar_one() or 0
 
         items = [BookingResponse.model_validate(b) for b in bookings]
         return BookingListResponse(

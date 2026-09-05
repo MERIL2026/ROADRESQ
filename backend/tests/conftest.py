@@ -28,7 +28,11 @@ def override_db_and_redis(request: pytest.FixtureRequest):
     """Provides mock DB session and Redis for unit tests unless real DB is requested."""
     # Don't override for integration tests that require live DB connection
     nodeid = request.node.nodeid
-    if "test_phase_1_database" in nodeid or "test_auth" in nodeid:
+    if (
+        "test_phase_1_database" in nodeid
+        or "test_auth" in nodeid
+        or "test_phase_4_dispatch_booking" in nodeid
+    ):
         yield
         return
 
