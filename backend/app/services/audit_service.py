@@ -35,8 +35,9 @@ def _sanitize_payload(data: dict[str, Any] | None) -> dict[str, Any] | None:
     return sanitized
 
 
-async def record_audit_event(  # noqa: PLR0913
+async def record_audit_event(
     session: AsyncSession,
+
     action: str,
     entity_type: str,
     entity_id: uuid.UUID | None = None,
