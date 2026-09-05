@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request, Response
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.health import router as root_health_router
@@ -13,6 +14,7 @@ from app.core.errors import (
     AppError,
     app_exception_handler,
     generic_exception_handler,
+    validation_exception_handler,
 )
 from app.core.logging import get_logger, setup_logging
 from app.core.redis import redis_client
@@ -64,6 +66,7 @@ app.add_middleware(
 
 # Exception Handlers
 app.add_exception_handler(AppError, app_exception_handler)  # type: ignore[arg-type]
+app.add_exception_handler(RequestValidationError, validation_exception_handler)  # type: ignore[arg-type]
 app.add_exception_handler(Exception, generic_exception_handler)
 
 # Mount Routers

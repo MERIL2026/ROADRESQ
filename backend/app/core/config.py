@@ -26,6 +26,21 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "dev_jwt_secret_key_roadresq_2026_change_me"
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+
+    # OTP Settings
+    OTP_LENGTH: int = 6
+    OTP_EXPIRE_SECONDS: int = 300  # 5 minutes
+    OTP_RESEND_COOLDOWN_SECONDS: int = 60  # 1 minute
+    OTP_MAX_ATTEMPTS: int = 3
+
+    # Rate Limiting
+    RATE_LIMIT_LOGIN_MAX_ATTEMPTS: int = 5
+    RATE_LIMIT_LOGIN_WINDOW_SECONDS: int = 900  # 15 minutes
+    RATE_LIMIT_OTP_MAX_REQUESTS: int = 5
+    RATE_LIMIT_OTP_WINDOW_SECONDS: int = 3600  # 1 hour
+    RATE_LIMIT_REFRESH_MAX_REQUESTS: int = 20
+    RATE_LIMIT_REFRESH_WINDOW_SECONDS: int = 60  # 1 minute
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
@@ -33,3 +48,4 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
