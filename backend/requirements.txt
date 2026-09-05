@@ -1,7 +1,7 @@
 # FastAPI Framework & Server
 fastapi>=0.115.0
 uvicorn[standard]>=0.28.0
-pydantic>=2.7.0
+pydantic[email]>=2.7.0
 pydantic-settings>=2.2.1
 
 
