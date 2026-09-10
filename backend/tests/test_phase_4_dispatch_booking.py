@@ -23,7 +23,7 @@ from app.models.enums import (
     VehicleFuelType,
 )
 from app.models.provider import Provider
-from app.models.service import PlatformService
+from app.models.service import Service
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.schemas.booking import BookingListResponse, BookingResponse
@@ -107,8 +107,8 @@ def customer_vehicle(customer_user: User) -> Vehicle:
 
 
 @pytest.fixture
-def platform_service() -> PlatformService:
-    return PlatformService(
+def platform_service() -> Service:
+    return Service(
         id=uuid.uuid4(),
         name="Tyre Repair",
         category="TYRE",
@@ -120,7 +120,7 @@ def platform_service() -> PlatformService:
 
 
 @pytest.fixture
-def sample_booking(customer_user: User, customer_vehicle: Vehicle, platform_service: PlatformService) -> Booking:
+def sample_booking(customer_user: User, customer_vehicle: Vehicle, platform_service: Service) -> Booking:
     b = Booking(
         id=uuid.uuid4(),
         booking_number="BK-20260905-ABCD01",
@@ -244,7 +244,7 @@ async def test_list_my_vehicles_returns_list(customer_user: User, customer_vehic
 async def test_create_booking_success(
     customer_user: User,
     customer_vehicle: Vehicle,
-    platform_service: PlatformService,
+    platform_service: Service,
     sample_booking: Booking,
 ) -> None:
     """Customer successfully creates a booking which triggers dispatch."""
@@ -358,10 +358,6 @@ async def test_cancel_booking_success(customer_user: User, sample_booking: Booki
     """Customer can cancel a REQUESTED booking."""
     token = create_access_token(user_id=customer_user.id, role=UserRole.CUSTOMER.value)
     headers = {"Authorization": f"Bearer {token}"}
-
-    cancelled_booking = sample_booking
-    cancelled_booking.status = BookingStatus.CANCELLED.value
-    cancelled_booking.cancellation_reason = "Changed my mind"
 
     mock_redis = AsyncMock()
     mock_redis.delete.return_value = True

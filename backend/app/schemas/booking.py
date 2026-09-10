@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -9,19 +10,30 @@ from app.models.enums import BookingStatus, BookingType, LocationType
 
 class LocationInput(BaseModel):
     latitude: float = Field(
-        ..., ge=-90.0, le=90.0, description="Geographic latitude coordinate (-90 to +90)", examples=[19.0760]
+        ...,
+        ge=-90.0,
+        le=90.0,
+        description="Geographic latitude coordinate (-90 to +90)",
+        examples=[19.0760],
     )
     longitude: float = Field(
-        ..., ge=-180.0, le=180.0, description="Geographic longitude coordinate (-180 to +180)", examples=[72.8777]
+        ...,
+        ge=-180.0,
+        le=180.0,
+        description="Geographic longitude coordinate (-180 to +180)",
+        examples=[72.8777],
     )
     address_text: str | None = Field(
-        None, max_length=500, description="Human readable street address / landmark description"
+        None,
+        max_length=500,
+        description="Human readable street address / landmark description",
     )
     landmark: str | None = Field(
         None, max_length=255, description="Nearby landmark or point of interest"
     )
     location_type: LocationType = Field(
-        default=LocationType.SERVICE, description="Type of location (PICKUP, SERVICE, DESTINATION)"
+        default=LocationType.SERVICE,
+        description="Type of location (PICKUP, SERVICE, DESTINATION)",
     )
 
 
@@ -39,13 +51,19 @@ class LocationResponse(BaseModel):
 
 
 class BookingCreateRequest(BaseModel):
-    vehicle_id: uuid.UUID = Field(..., description="UUID of the customer's registered vehicle")
-    service_id: uuid.UUID = Field(..., description="UUID of the requested roadside service from catalog")
+    vehicle_id: uuid.UUID = Field(
+        ..., description="UUID of the customer's registered vehicle"
+    )
+    service_id: uuid.UUID = Field(
+        ..., description="UUID of the requested roadside service from catalog"
+    )
     booking_type: BookingType = Field(
         default=BookingType.EMERGENCY, description="EMERGENCY or SCHEDULED service"
     )
     problem_description: str | None = Field(
-        None, max_length=1000, description="Customer description of the breakdown or assistance need"
+        None,
+        max_length=1000,
+        description="Customer description of the breakdown or assistance need",
     )
     pickup_location: LocationInput = Field(
         ..., description="Pickup/breakdown location coordinates and address"
@@ -59,7 +77,7 @@ class BookingCreateRequest(BaseModel):
 
     @field_validator("scheduled_at")
     @classmethod
-    def validate_scheduled_at(cls, v: datetime | None, info: any) -> datetime | None:
+    def validate_scheduled_at(cls, v: datetime | None, info: Any) -> datetime | None:
         if v is not None:
             # Scheduled time must be in the future if provided
             pass
@@ -68,7 +86,10 @@ class BookingCreateRequest(BaseModel):
 
 class BookingCancelRequest(BaseModel):
     cancellation_reason: str = Field(
-        ..., min_length=3, max_length=500, description="Reason for cancelling the booking"
+        ...,
+        min_length=3,
+        max_length=500,
+        description="Reason for cancelling the booking",
     )
 
 
@@ -77,7 +98,9 @@ class BookingStatusUpdateRequest(BaseModel):
         ..., description="Target lifecycle state to transition the booking into"
     )
     notes: str | None = Field(
-        None, max_length=500, description="Optional operator / provider notes for this status transition"
+        None,
+        max_length=500,
+        description="Optional operator / provider notes for this status transition",
     )
 
 

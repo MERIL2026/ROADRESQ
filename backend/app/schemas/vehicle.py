@@ -15,7 +15,10 @@ class VehicleCreateRequest(BaseModel):
         examples=["MH01AB1234"],
     )
     make: str | None = Field(
-        None, max_length=80, description="Vehicle manufacturer make", examples=["Hyundai"]
+        None,
+        max_length=80,
+        description="Vehicle manufacturer make",
+        examples=["Hyundai"],
     )
     model: str | None = Field(
         None, max_length=100, description="Vehicle model name", examples=["Creta"]
@@ -24,13 +27,18 @@ class VehicleCreateRequest(BaseModel):
         None, max_length=100, description="Vehicle variant/trim", examples=["SX(O)"]
     )
     fuel_type: VehicleFuelType | None = Field(
-        None, description="Vehicle fuel/powertrain type", examples=[VehicleFuelType.PETROL]
+        None,
+        description="Vehicle fuel/powertrain type",
+        examples=[VehicleFuelType.PETROL],
     )
     year: int | None = Field(
         None, ge=1970, le=2030, description="Manufacturing year", examples=[2022]
     )
     color: str | None = Field(
-        None, max_length=50, description="Exterior vehicle color", examples=["Polar White"]
+        None,
+        max_length=50,
+        description="Exterior vehicle color",
+        examples=["Polar White"],
     )
     vin: str | None = Field(
         None, max_length=100, description="Vehicle identification number"

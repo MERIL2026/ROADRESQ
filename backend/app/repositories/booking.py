@@ -1,6 +1,7 @@
 import uuid
+from collections.abc import Sequence
 from datetime import UTC, datetime
-from typing import Sequence
+from typing import Any
 
 from geoalchemy2.elements import WKBElement, WKTElement
 from geoalchemy2.shape import to_shape
@@ -13,7 +14,7 @@ from app.models.enums import BookingStatus
 
 
 class BookingRepository:
-    """Data repository for Roadside Assistance Bookings, Locations, and Status History."""
+    """Data repository for Roadside Assistance Bookings, Locations, and History."""
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
@@ -182,7 +183,8 @@ class BookingRepository:
         """
         Atomically assigns a provider to a booking with strict WHERE condition.
         Prevents race condition where two providers accept the same booking.
-        Returns True if assignment succeeded, False if already assigned or state changed.
+        Returns True if assignment succeeded, False if already assigned or
+        state changed.
         """
         now = datetime.now(UTC)
         stmt = (
@@ -207,8 +209,8 @@ class BookingRepository:
         return result.rowcount > 0
 
     @staticmethod
-    def extract_coordinates(location_attr: any) -> tuple[float, float]:
-        """Extracts (latitude, longitude) from PostGIS geography point or WKBElement."""
+    def extract_coordinates(location_attr: Any) -> tuple[float, float]:
+        """Extracts (latitude, longitude) from PostGIS point or WKBElement."""
         if location_attr is None:
             return 0.0, 0.0
         if isinstance(location_attr, WKBElement):
@@ -219,7 +221,10 @@ class BookingRepository:
             text = str(location_attr)
             # POINT(lon lat)
             if "POINT" in text:
-                coords = text.replace("POINT", "").replace("(", "").replace(")", "").strip().split()
+                clean_text = (
+                    text.replace("POINT", "").replace("(", "").replace(")", "").strip()
+                )
+                coords = clean_text.split()
                 if len(coords) >= 2:
                     return float(coords[1]), float(coords[0])
         return 0.0, 0.0

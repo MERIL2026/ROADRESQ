@@ -7,10 +7,18 @@ from pydantic import BaseModel, Field
 
 class ProviderLocationPingRequest(BaseModel):
     latitude: float = Field(
-        ..., ge=-90.0, le=90.0, description="Current latitude coordinate of the provider", examples=[19.0760]
+        ...,
+        ge=-90.0,
+        le=90.0,
+        description="Current latitude coordinate of the provider",
+        examples=[19.0760],
     )
     longitude: float = Field(
-        ..., ge=-180.0, le=180.0, description="Current longitude coordinate of the provider", examples=[72.8777]
+        ...,
+        ge=-180.0,
+        le=180.0,
+        description="Current longitude coordinate of the provider",
+        examples=[72.8777],
     )
 
 
@@ -49,7 +57,9 @@ class DispatchAcceptRequest(BaseModel):
 
 class DispatchRejectRequest(BaseModel):
     reason: str | None = Field(
-        None, max_length=255, description="Optional reason why provider rejected this dispatch offer"
+        None,
+        max_length=255,
+        description="Optional reason why provider rejected this dispatch offer",
     )
 
 

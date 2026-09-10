@@ -28,6 +28,8 @@ ignore = ["PLR2004"]
 "alembic/*" = ["E501"]
 "app/api/*" = ["PLR0913", "PLR0917", "E501"]
 "app/services/*" = ["PLR0913", "PLR0917", "E501"]
+"app/repositories/*" = ["PLR0913", "PLR0917"]
+"app/core/redis.py" = ["PLR0913", "PLR0917"]
 
 
 
