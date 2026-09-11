@@ -26,8 +26,10 @@ ignore = ["PLR2004"]
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR0915", "PLR2004", "E501"]
 "alembic/*" = ["E501"]
-"app/api/*" = ["PLR0913"]
-"app/services/*" = ["PLR0913"]
+"app/api/*" = ["PLR0913", "PLR0917", "E501"]
+"app/services/*" = ["PLR0913", "PLR0917", "E501"]
+"app/repositories/*" = ["PLR0913", "PLR0917"]
+"app/core/redis.py" = ["PLR0913", "PLR0917"]
 
 
 

@@ -1,4 +1,5 @@
 from app.repositories.base import BaseRepository
+from app.repositories.booking import BookingRepository
 from app.repositories.provider import (
     ProviderAvailabilityRepository,
     ProviderBookingQueryRepository,
@@ -8,9 +9,11 @@ from app.repositories.provider import (
 )
 from app.repositories.service import ServiceRepository
 from app.repositories.user import UserRepository
+from app.repositories.vehicle import VehicleRepository
 
 __all__ = [
     "BaseRepository",
+    "BookingRepository",
     "ProviderAvailabilityRepository",
     "ProviderBookingQueryRepository",
     "ProviderDocumentRepository",
@@ -18,6 +21,5 @@ __all__ = [
     "ProviderServiceRepository",
     "ServiceRepository",
     "UserRepository",
+    "VehicleRepository",
 ]
-
-

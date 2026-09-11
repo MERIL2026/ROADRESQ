@@ -12,7 +12,31 @@ from app.schemas.auth import (
     UserRegisterRequest,
     UserResponse,
 )
+from app.schemas.booking import (
+    BookingCancelRequest,
+    BookingCreateRequest,
+    BookingDetailResponse,
+    BookingListResponse,
+    BookingResponse,
+    BookingStatusHistoryResponse,
+    BookingStatusUpdateRequest,
+    CustomerSummary,
+    LocationInput,
+    LocationResponse,
+    ProviderSummary,
+    ServiceSummary,
+    VehicleSummary,
+)
 from app.schemas.common import APIResponse, ErrorDetail, ErrorResponse, ResponseMeta
+from app.schemas.dispatch import (
+    DispatchAcceptRequest,
+    DispatchAcceptResponse,
+    DispatchOfferListResponse,
+    DispatchOfferResponse,
+    DispatchRejectRequest,
+    ProviderLocationPingRequest,
+    ProviderLocationResponse,
+)
 from app.schemas.health import LivenessData, ReadinessData, ServiceHealthInfo
 from app.schemas.provider import (
     AvailabilitySlotSchema,
@@ -39,13 +63,33 @@ from app.schemas.provider import (
     ProviderVerificationUpdateRequest,
 )
 from app.schemas.service import ServiceListResponse, ServiceResponse
+from app.schemas.vehicle import (
+    VehicleCreateRequest,
+    VehicleListResponse,
+    VehicleResponse,
+)
 
 __all__ = [
     "APIResponse",
     "AvailabilitySlotSchema",
+    "BookingCancelRequest",
+    "BookingCreateRequest",
+    "BookingDetailResponse",
+    "BookingListResponse",
+    "BookingResponse",
+    "BookingStatusHistoryResponse",
+    "BookingStatusUpdateRequest",
+    "CustomerSummary",
+    "DispatchAcceptRequest",
+    "DispatchAcceptResponse",
+    "DispatchOfferListResponse",
+    "DispatchOfferResponse",
+    "DispatchRejectRequest",
     "ErrorDetail",
     "ErrorResponse",
     "LivenessData",
+    "LocationInput",
+    "LocationResponse",
     "LogoutRequest",
     "MessageResponse",
     "OTPRequest",
@@ -63,6 +107,8 @@ __all__ = [
     "ProviderDocumentResponse",
     "ProviderDocumentReviewRequest",
     "ProviderDocumentUploadRequest",
+    "ProviderLocationPingRequest",
+    "ProviderLocationResponse",
     "ProviderProfileResponse",
     "ProviderProfileUpdateRequest",
     "ProviderPublicResponse",
@@ -72,18 +118,22 @@ __all__ = [
     "ProviderServiceUpdateRequest",
     "ProviderStatusResponse",
     "ProviderStatusUpdateRequest",
+    "ProviderSummary",
     "ProviderVerificationUpdateRequest",
     "ReadinessData",
     "ResponseMeta",
     "ServiceHealthInfo",
     "ServiceListResponse",
     "ServiceResponse",
+    "ServiceSummary",
     "TokenRefreshRequest",
     "TokenRefreshResponse",
     "TokenResponse",
     "UserLoginRequest",
     "UserRegisterRequest",
     "UserResponse",
+    "VehicleCreateRequest",
+    "VehicleListResponse",
+    "VehicleResponse",
+    "VehicleSummary",
 ]
-
-
