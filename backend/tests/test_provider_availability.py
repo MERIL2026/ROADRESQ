@@ -39,9 +39,7 @@ def provider_record(provider_user: User) -> Provider:
 async def test_provider_sets_valid_weekly_availability(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
         "slots": [
@@ -94,10 +92,20 @@ async def test_provider_sets_valid_weekly_availability(
     ]
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ProviderAvailabilityRepository.replace_schedule", new_callable=AsyncMock) as mock_replace,
-        patch("app.services.provider_service.record_audit_event", new_callable=AsyncMock),
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ProviderAvailabilityRepository.replace_schedule",
+            new_callable=AsyncMock,
+        ) as mock_replace,
+        patch(
+            "app.services.provider_service.record_audit_event", new_callable=AsyncMock
+        ),
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -119,9 +127,7 @@ async def test_provider_sets_valid_weekly_availability(
 
 @pytest.mark.asyncio
 async def test_overlapping_slots_rejected(provider_user: User) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     # Slots overlap on Day 0 (Monday: 08:00-14:00 overlaps with 12:00-18:00)
     payload = {
@@ -141,7 +147,9 @@ async def test_overlapping_slots_rejected(provider_user: User) -> None:
         ]
     }
 
-    with patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get:
+    with patch(
+        "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+    ) as mock_user_get:
         mock_user_get.return_value = provider_user
 
         async with AsyncClient(
@@ -159,9 +167,7 @@ async def test_overlapping_slots_rejected(provider_user: User) -> None:
 
 @pytest.mark.asyncio
 async def test_invalid_time_range_rejected(provider_user: User) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     # start_time >= end_time is invalid
     payload = {
@@ -175,7 +181,9 @@ async def test_invalid_time_range_rejected(provider_user: User) -> None:
         ]
     }
 
-    with patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get:
+    with patch(
+        "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+    ) as mock_user_get:
         mock_user_get.return_value = provider_user
 
         async with AsyncClient(

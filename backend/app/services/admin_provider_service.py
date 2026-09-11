@@ -58,9 +58,7 @@ class AdminProviderService:
         ProviderVerificationStatus.REJECTED.value: set(),  # Terminal state
     }
 
-    def __init__(
-        self, session: AsyncSession, redis: RedisClient | None = None
-    ) -> None:
+    def __init__(self, session: AsyncSession, redis: RedisClient | None = None) -> None:
         self.session = session
         self.redis = redis or redis_client
         self.provider_repo = ProviderRepository(session)
@@ -117,8 +115,7 @@ class AdminProviderService:
             )
 
         doc_items = [
-            ProviderDocumentResponse.model_validate(d)
-            for d in provider.documents
+            ProviderDocumentResponse.model_validate(d) for d in provider.documents
         ]
         svc_items = [
             ProviderServiceResponse(

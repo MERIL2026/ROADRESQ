@@ -43,9 +43,7 @@ def provider_record(provider_user: User) -> Provider:
 async def test_provider_submits_document(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
         "document_type": ProviderDocumentType.LICENSE.value,
@@ -54,9 +52,16 @@ async def test_provider_submits_document(
     }
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.record_audit_event", new_callable=AsyncMock) as mock_audit,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.record_audit_event", new_callable=AsyncMock
+        ) as mock_audit,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -79,9 +84,7 @@ async def test_provider_submits_document(
 async def test_document_unsafe_scheme_rejected(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     # javascript: / ftp: schemes must be rejected
     payload = {
@@ -90,8 +93,13 @@ async def test_document_unsafe_scheme_rejected(
     }
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -111,9 +119,7 @@ async def test_document_unsafe_scheme_rejected(
 async def test_provider_lists_own_documents(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     doc1 = ProviderDocument(
@@ -132,9 +138,17 @@ async def test_provider_lists_own_documents(
     )
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ProviderDocumentRepository.list_by_provider", new_callable=AsyncMock) as mock_doc_list,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ProviderDocumentRepository.list_by_provider",
+            new_callable=AsyncMock,
+        ) as mock_doc_list,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -143,9 +157,7 @@ async def test_provider_lists_own_documents(
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as client:
-            resp = await client.get(
-                "/api/v1/providers/me/documents", headers=headers
-            )
+            resp = await client.get("/api/v1/providers/me/documents", headers=headers)
 
     assert resp.status_code == 200
     data = resp.json()["data"]
@@ -157,9 +169,7 @@ async def test_provider_lists_own_documents(
 async def test_provider_cannot_delete_approved_document(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     approved_doc = ProviderDocument(
         id=uuid.uuid4(),
@@ -170,9 +180,17 @@ async def test_provider_cannot_delete_approved_document(
     )
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ProviderDocumentRepository.get_by_id", new_callable=AsyncMock) as mock_doc_get,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ProviderDocumentRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_doc_get,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -194,9 +212,7 @@ async def test_provider_cannot_delete_approved_document(
 async def test_provider_cannot_delete_another_providers_document(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     other_provider_doc = ProviderDocument(
         id=uuid.uuid4(),
@@ -207,9 +223,17 @@ async def test_provider_cannot_delete_another_providers_document(
     )
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ProviderDocumentRepository.get_by_id", new_callable=AsyncMock) as mock_doc_get,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ProviderDocumentRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_doc_get,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record

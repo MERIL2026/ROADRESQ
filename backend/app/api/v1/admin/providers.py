@@ -85,7 +85,6 @@ async def get_provider_detail_admin(
     status_code=status.HTTP_200_OK,
     summary="Transition provider verification lifecycle status",
 )
-
 async def update_provider_verification(
     provider_id: uuid.UUID,
     data: ProviderVerificationUpdateRequest,

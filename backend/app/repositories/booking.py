@@ -50,9 +50,7 @@ class BookingRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_id_with_relations(
-        self, booking_id: uuid.UUID
-    ) -> Booking | None:
+    async def get_by_id_with_relations(self, booking_id: uuid.UUID) -> Booking | None:
         stmt = (
             select(Booking)
             .options(
@@ -68,9 +66,7 @@ class BookingRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
-    async def get_by_booking_number(
-        self, booking_number: str
-    ) -> Booking | None:
+    async def get_by_booking_number(self, booking_number: str) -> Booking | None:
         stmt = (
             select(Booking)
             .options(
@@ -106,14 +102,32 @@ class BookingRepository:
         result = await self.session.execute(stmt)
         return result.scalars().all()
 
+    async def list_by_provider(
+        self,
+        provider_id: uuid.UUID,
+        status: str | None = None,
+        skip: int = 0,
+        limit: int = 20,
+    ) -> Sequence[Booking]:
+        stmt = (
+            select(Booking)
+            .where(Booking.provider_id == provider_id)
+            .order_by(Booking.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+        )
+        if status:
+            stmt = stmt.where(Booking.status == status)
+
+        result = await self.session.execute(stmt)
+        return result.scalars().all()
+
     async def count_by_customer(
         self,
         customer_id: uuid.UUID,
         status: str | None = None,
     ) -> int:
-        stmt = select(func.count(Booking.id)).where(
-            Booking.customer_id == customer_id
-        )
+        stmt = select(func.count(Booking.id)).where(Booking.customer_id == customer_id)
         if status:
             stmt = stmt.where(Booking.status == status)
 
@@ -191,11 +205,13 @@ class BookingRepository:
             update(Booking)
             .where(
                 Booking.id == booking_id,
-                Booking.status.in_([
-                    BookingStatus.REQUESTED.value,
-                    BookingStatus.SEARCHING.value,
-                    BookingStatus.PROVIDER_ASSIGNED.value,
-                ]),
+                Booking.status.in_(
+                    [
+                        BookingStatus.REQUESTED.value,
+                        BookingStatus.SEARCHING.value,
+                        BookingStatus.PROVIDER_ASSIGNED.value,
+                    ]
+                ),
                 Booking.provider_id.is_(None),
             )
             .values(

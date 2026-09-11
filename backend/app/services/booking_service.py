@@ -72,26 +72,41 @@ class BookingService:
         },
         BookingStatus.ARRIVED.value: {
             BookingStatus.INSPECTION.value,
+            BookingStatus.ESTIMATE_PENDING.value,
             BookingStatus.IN_PROGRESS.value,
             BookingStatus.CANCELLED.value,
         },
         BookingStatus.INSPECTION.value: {
+            BookingStatus.ESTIMATE_PENDING.value,
+            BookingStatus.APPROVED.value,
             BookingStatus.IN_PROGRESS.value,
             BookingStatus.CANCELLED.value,
         },
+        BookingStatus.ESTIMATE_PENDING.value: {
+            BookingStatus.APPROVED.value,
+            BookingStatus.IN_PROGRESS.value,
+            BookingStatus.CANCELLED.value,
+            BookingStatus.DISPUTED.value,
+        },
+        BookingStatus.APPROVED.value: {
+            BookingStatus.IN_PROGRESS.value,
+            BookingStatus.ESTIMATE_PENDING.value,
+            BookingStatus.CANCELLED.value,
+        },
         BookingStatus.IN_PROGRESS.value: {
+            BookingStatus.ESTIMATE_PENDING.value,
             BookingStatus.COMPLETED.value,
+            BookingStatus.DISPUTED.value,
         },
         BookingStatus.EXPIRED.value: {
             BookingStatus.SEARCHING.value,  # Retry dispatch
         },
-        BookingStatus.COMPLETED.value: set(),  # Terminal state
+        BookingStatus.COMPLETED.value: set(),  # Terminal state in Phase 5 (transition to INVOICE_GENERATED in Phase 6)
         BookingStatus.CANCELLED.value: set(),  # Terminal state
+        BookingStatus.DISPUTED.value: set(),  # Exception state
     }
 
-    def __init__(
-        self, session: AsyncSession, redis: RedisClient | None = None
-    ) -> None:
+    def __init__(self, session: AsyncSession, redis: RedisClient | None = None) -> None:
         self.session = session
         self.redis = redis or redis_client
         self.booking_repo = BookingRepository(session)
@@ -231,7 +246,9 @@ class BookingService:
 
         if user_role == UserRole.PROVIDER.value:
             provider = await self.provider_repo.get_by_user_id(user_id)
-            if not provider or (booking.provider_id is not None and booking.provider_id != provider.id):
+            if not provider or (
+                booking.provider_id is not None and booking.provider_id != provider.id
+            ):
                 raise ForbiddenError(
                     message="You are not authorized to view this booking.",
                     code="FORBIDDEN",
@@ -369,10 +386,7 @@ class BookingService:
             count_stmt = count_stmt.where(Booking.provider_id == provider_id)
 
         base_stmt = (
-            base_stmt
-            .order_by(Booking.created_at.desc())
-            .offset(skip)
-            .limit(page_size)
+            base_stmt.order_by(Booking.created_at.desc()).offset(skip).limit(page_size)
         )
 
         rows = await self.session.execute(base_stmt)

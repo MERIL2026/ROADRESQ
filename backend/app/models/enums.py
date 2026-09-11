@@ -104,3 +104,27 @@ class AuditAction(str, enum.Enum):
     STATUS_CHANGE = "STATUS_CHANGE"
     LOGIN = "LOGIN"
     ASSIGN = "ASSIGN"
+
+
+class JobStatus(str, enum.Enum):
+    INSPECTION = "INSPECTION"
+    ESTIMATE_PENDING = "ESTIMATE_PENDING"
+    APPROVED = "APPROVED"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+
+
+class InspectionCondition(str, enum.Enum):
+    GOOD = "GOOD"
+    FAIR = "FAIR"
+    POOR = "POOR"
+    CRITICAL = "CRITICAL"
+
+
+class EstimateStatus(str, enum.Enum):
+    DRAFT = "DRAFT"
+    PENDING_APPROVAL = "PENDING_APPROVAL"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    REVISED = "REVISED"
+    EXPIRED = "EXPIRED"

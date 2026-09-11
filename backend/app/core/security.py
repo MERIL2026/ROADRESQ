@@ -85,9 +85,7 @@ def create_refresh_token(
     return encoded_jwt, token_jti, expire
 
 
-def decode_token(
-    token: str, expected_type: str | None = None
-) -> dict[str, Any]:
+def decode_token(token: str, expected_type: str | None = None) -> dict[str, Any]:
     """
     Decodes and validates a JWT token.
     Enforces signature validity, expiration, and token type.

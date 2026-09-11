@@ -37,9 +37,7 @@ class DispatchService:
 
     DEFAULT_OFFER_TTL_SECONDS: int = 45
 
-    def __init__(
-        self, session: AsyncSession, redis: RedisClient | None = None
-    ) -> None:
+    def __init__(self, session: AsyncSession, redis: RedisClient | None = None) -> None:
         self.session = session
         self.redis = redis or redis_client
         self.booking_repo = BookingRepository(session)
@@ -89,6 +87,7 @@ class DispatchService:
             provider_id=provider.id,
             latitude=latitude,
             longitude=longitude,
+            recorded_at=now,
             updated_at=now,
         )
 
@@ -132,15 +131,14 @@ class DispatchService:
         declined_ids = await self.redis.smembers(declined_key)
 
         # Find all online/verified providers
-        stmt = (
-            select(Provider)
-            .where(
-                Provider.verification_status.in_([
+        stmt = select(Provider).where(
+            Provider.verification_status.in_(
+                [
                     ProviderVerificationStatus.VERIFIED.value,
                     ProviderVerificationStatus.ACTIVE.value,
-                ]),
-                Provider.is_online.is_(True),
-            )
+                ]
+            ),
+            Provider.is_online.is_(True),
         )
         result = await self.session.execute(stmt)
         all_online_providers = result.scalars().all()

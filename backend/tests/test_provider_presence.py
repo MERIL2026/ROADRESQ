@@ -55,16 +55,22 @@ def pending_provider(provider_user: User) -> Provider:
 async def test_pending_provider_cannot_go_online(
     provider_user: User, pending_provider: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     payload = {"is_online": True}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.UserRepository.get_by_id", new_callable=AsyncMock) as mock_svc_user,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.UserRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_svc_user,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
     ):
         mock_user_get.return_value = provider_user
         mock_svc_user.return_value = provider_user
@@ -85,17 +91,26 @@ async def test_pending_provider_cannot_go_online(
 async def test_verified_provider_without_approved_docs_cannot_go_online(
     provider_user: User, verified_provider: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     payload = {"is_online": True}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.UserRepository.get_by_id", new_callable=AsyncMock) as mock_svc_user,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ProviderDocumentRepository.count_approved", new_callable=AsyncMock) as mock_doc_count,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.UserRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_svc_user,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ProviderDocumentRepository.count_approved",
+            new_callable=AsyncMock,
+        ) as mock_doc_count,
     ):
         mock_user_get.return_value = provider_user
         mock_svc_user.return_value = provider_user
@@ -117,18 +132,30 @@ async def test_verified_provider_without_approved_docs_cannot_go_online(
 async def test_verified_provider_without_services_cannot_go_online(
     provider_user: User, verified_provider: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     payload = {"is_online": True}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.UserRepository.get_by_id", new_callable=AsyncMock) as mock_svc_user,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ProviderDocumentRepository.count_approved", new_callable=AsyncMock) as mock_doc_count,
-        patch("app.services.provider_service.ProviderServiceRepository.count_active", new_callable=AsyncMock) as mock_svc_count,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.UserRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_svc_user,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ProviderDocumentRepository.count_approved",
+            new_callable=AsyncMock,
+        ) as mock_doc_count,
+        patch(
+            "app.services.provider_service.ProviderServiceRepository.count_active",
+            new_callable=AsyncMock,
+        ) as mock_svc_count,
     ):
         mock_user_get.return_value = provider_user
         mock_svc_user.return_value = provider_user
@@ -151,23 +178,36 @@ async def test_verified_provider_without_services_cannot_go_online(
 async def test_fully_eligible_provider_goes_online_and_offline(
     provider_user: User, verified_provider: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     mock_redis = AsyncMock()
     app.dependency_overrides[get_redis] = lambda: mock_redis
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.UserRepository.get_by_id", new_callable=AsyncMock) as mock_svc_user,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ProviderDocumentRepository.count_approved", new_callable=AsyncMock) as mock_doc_count,
-        patch("app.services.provider_service.ProviderServiceRepository.count_active", new_callable=AsyncMock) as mock_svc_count,
-        patch("app.services.provider_service.record_audit_event", new_callable=AsyncMock),
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.UserRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_svc_user,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ProviderDocumentRepository.count_approved",
+            new_callable=AsyncMock,
+        ) as mock_doc_count,
+        patch(
+            "app.services.provider_service.ProviderServiceRepository.count_active",
+            new_callable=AsyncMock,
+        ) as mock_svc_count,
+        patch(
+            "app.services.provider_service.record_audit_event", new_callable=AsyncMock
+        ),
     ):
-
         mock_user_get.return_value = provider_user
         mock_svc_user.return_value = provider_user
         mock_prov_get.return_value = verified_provider

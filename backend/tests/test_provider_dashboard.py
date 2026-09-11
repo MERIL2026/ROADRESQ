@@ -41,24 +41,41 @@ def provider_record(provider_user: User) -> Provider:
     )
 
 
-
 @pytest.mark.asyncio
 async def test_provider_dashboard_metrics(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ProviderBookingQueryRepository.count_active_bookings", new_callable=AsyncMock) as mock_active_count,
-        patch("app.services.provider_service.ProviderBookingQueryRepository.count_completed_bookings", new_callable=AsyncMock) as mock_comp_count,
-        patch("app.services.provider_service.ProviderDocumentRepository.count_total", new_callable=AsyncMock) as mock_total_docs,
-        patch("app.services.provider_service.ProviderDocumentRepository.count_approved", new_callable=AsyncMock) as mock_app_docs,
-        patch("app.services.provider_service.ProviderServiceRepository.count_active", new_callable=AsyncMock) as mock_act_svc,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ProviderBookingQueryRepository.count_active_bookings",
+            new_callable=AsyncMock,
+        ) as mock_active_count,
+        patch(
+            "app.services.provider_service.ProviderBookingQueryRepository.count_completed_bookings",
+            new_callable=AsyncMock,
+        ) as mock_comp_count,
+        patch(
+            "app.services.provider_service.ProviderDocumentRepository.count_total",
+            new_callable=AsyncMock,
+        ) as mock_total_docs,
+        patch(
+            "app.services.provider_service.ProviderDocumentRepository.count_approved",
+            new_callable=AsyncMock,
+        ) as mock_app_docs,
+        patch(
+            "app.services.provider_service.ProviderServiceRepository.count_active",
+            new_callable=AsyncMock,
+        ) as mock_act_svc,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -71,9 +88,7 @@ async def test_provider_dashboard_metrics(
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as client:
-            resp = await client.get(
-                "/api/v1/providers/me/dashboard", headers=headers
-            )
+            resp = await client.get("/api/v1/providers/me/dashboard", headers=headers)
 
     assert resp.status_code == 200
     data = resp.json()["data"]
@@ -88,9 +103,7 @@ async def test_provider_dashboard_metrics(
 async def test_provider_lists_assigned_bookings(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     customer = User(
@@ -119,9 +132,17 @@ async def test_provider_lists_assigned_bookings(
     )
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ProviderBookingQueryRepository.list_assigned_bookings", new_callable=AsyncMock) as mock_list_bks,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ProviderBookingQueryRepository.list_assigned_bookings",
+            new_callable=AsyncMock,
+        ) as mock_list_bks,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -130,9 +151,7 @@ async def test_provider_lists_assigned_bookings(
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
         ) as client:
-            resp = await client.get(
-                "/api/v1/providers/me/bookings", headers=headers
-            )
+            resp = await client.get("/api/v1/providers/me/bookings", headers=headers)
 
     assert resp.status_code == 200
     data = resp.json()["data"]

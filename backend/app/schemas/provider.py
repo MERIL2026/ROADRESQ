@@ -36,7 +36,6 @@ class ProviderProfileResponse(BaseModel):
     updated_at: datetime | None = None
 
 
-
 class ProviderProfileUpdateRequest(BaseModel):
     """Request payload to update provider profile information."""
 
@@ -416,4 +415,3 @@ class ProviderBookingSummaryResponse(BaseModel):
 class ProviderBookingListResponse(BaseModel):
     bookings: list[ProviderBookingSummaryResponse]
     total: int
-

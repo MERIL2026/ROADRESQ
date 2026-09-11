@@ -159,18 +159,14 @@ async def app_exception_handler(request: Request, exc: AppError) -> JSONResponse
     )
 
 
-async def validation_exception_handler(
-    request: Request, exc: Any
-) -> JSONResponse:
+async def validation_exception_handler(request: Request, exc: Any) -> JSONResponse:
     """Formats FastAPI/Pydantic validation errors into standard API error envelope."""
     request_id = getattr(request.state, "request_id", "unknown")
     errors = []
     if hasattr(exc, "errors"):
         for err in exc.errors():
             loc = " -> ".join(str(item) for item in err.get("loc", []))
-            errors.append(
-                {"field": loc, "message": err.get("msg", "Validation error")}
-            )
+            errors.append({"field": loc, "message": err.get("msg", "Validation error")})
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
@@ -198,4 +194,3 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
             }
         },
     )
-

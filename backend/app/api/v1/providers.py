@@ -25,6 +25,7 @@ from app.schemas.dispatch import (
     ProviderLocationPingRequest,
     ProviderLocationResponse,
 )
+from app.schemas.job import JobCardCompleteRequest, JobCardResponse
 from app.schemas.provider import (
     ProviderAvailabilityBatchUpdateRequest,
     ProviderAvailabilityResponse,
@@ -43,9 +44,12 @@ from app.schemas.provider import (
     ProviderStatusResponse,
     ProviderStatusUpdateRequest,
 )
+from app.schemas.tracking import ArrivalVerifyRequest
 from app.services.booking_service import BookingService
 from app.services.dispatch_service import DispatchService
+from app.services.job_service import JobService
 from app.services.provider_service import ProviderServiceLayer
+from app.services.tracking_service import TrackingService
 
 router = APIRouter(prefix="/providers", tags=["Provider Domain"])
 
@@ -512,19 +516,18 @@ async def update_provider_location(
     redis: RedisClient = Depends(get_redis),
 ) -> APIResponse[ProviderLocationResponse]:
     request_id = get_request_id(request)
-    dispatch_service = DispatchService(session, redis)
-    # Resolve provider entity id from the user account
-    provider = await dispatch_service.provider_repo.get_by_user_id(current_user.id)
-    if not provider:
-        raise NotFoundError(
-            message="Provider profile not found.",
-            code="PROVIDER_NOT_FOUND",
-        )
-    location = await dispatch_service.update_provider_location(
-        provider_id=provider.id,
-        latitude=data.latitude,
-        longitude=data.longitude,
+    ip_address = get_client_ip(request)
+    user_agent = get_user_agent(request)
+
+    tracking_service = TrackingService(session, redis)
+    location = await tracking_service.update_provider_location(
+        user_id=current_user.id,
+        data=data,
+        ip_address=ip_address,
+        user_agent=user_agent,
     )
+    await session.commit()
+
     return APIResponse(
         data=location,
         meta=ResponseMeta(request_id=request_id),
@@ -657,5 +660,73 @@ async def update_assigned_booking_status(
 
     return APIResponse(
         data=updated,
+        meta=ResponseMeta(request_id=request_id),
+    )
+
+
+@router.post(
+    "/me/bookings/{booking_id}/arrive",
+    response_model=APIResponse[JobCardResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Verify customer Arrival OTP and initialize JobCard upon physical arrival",
+)
+async def verify_provider_arrival(
+    booking_id: uuid.UUID,
+    data: ArrivalVerifyRequest,
+    request: Request,
+    current_user: User = Depends(require_provider),
+    session: AsyncSession = Depends(get_db_session),
+    redis: RedisClient = Depends(get_redis),
+) -> APIResponse[JobCardResponse]:
+    request_id = get_request_id(request)
+    ip_address = get_client_ip(request)
+    user_agent = get_user_agent(request)
+
+    tracking_service = TrackingService(session, redis)
+    job_card = await tracking_service.verify_arrival(
+        booking_id=booking_id,
+        user_id=current_user.id,
+        data=data,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+    await session.commit()
+
+    return APIResponse(
+        data=job_card,
+        meta=ResponseMeta(request_id=request_id),
+    )
+
+
+@router.post(
+    "/me/bookings/{booking_id}/complete",
+    response_model=APIResponse[JobCardResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Provider marks roadside assistance job as COMPLETED with notes and photo evidence",
+)
+async def complete_assigned_job(
+    booking_id: uuid.UUID,
+    data: JobCardCompleteRequest,
+    request: Request,
+    current_user: User = Depends(require_provider),
+    session: AsyncSession = Depends(get_db_session),
+    redis: RedisClient = Depends(get_redis),
+) -> APIResponse[JobCardResponse]:
+    request_id = get_request_id(request)
+    ip_address = get_client_ip(request)
+    user_agent = get_user_agent(request)
+
+    job_service = JobService(session, redis)
+    completed_job = await job_service.complete_job(
+        booking_id=booking_id,
+        user_id=current_user.id,
+        data=data,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+    await session.commit()
+
+    return APIResponse(
+        data=completed_job,
         meta=ResponseMeta(request_id=request_id),
     )

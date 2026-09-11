@@ -18,9 +18,7 @@ class Coordinates:
             )
 
 
-def haversine_distance_km(
-    lat1: float, lon1: float, lat2: float, lon2: float
-) -> float:
+def haversine_distance_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """
     Computes great-circle distance between two GPS coordinates in kilometers
     using the Haversine formula.

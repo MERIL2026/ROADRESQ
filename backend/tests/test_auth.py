@@ -42,6 +42,7 @@ def db_session_factory():
 # 1. PASSWORD SECURITY TESTS
 # =========================================================================
 
+
 def test_password_hash_generation_and_verification() -> None:
     raw = "SuperSecretPassword123!"
     hashed = hash_password(raw)
@@ -62,6 +63,7 @@ def test_password_never_plaintext() -> None:
 # =========================================================================
 # 2. JWT ACCESS & REFRESH TOKEN TESTS
 # =========================================================================
+
 
 def test_jwt_access_token_creation_and_decoding() -> None:
     user_id = uuid.uuid4()
@@ -111,6 +113,7 @@ def test_jwt_wrong_token_type() -> None:
 # =========================================================================
 # 3. OTP FOUNDATION TESTS (REDIS-BACKED)
 # =========================================================================
+
 
 @pytest.mark.asyncio
 async def test_otp_generation_verification_lifecycle() -> None:
@@ -173,6 +176,7 @@ async def test_otp_resend_cooldown() -> None:
 # =========================================================================
 # 4. REGISTRATION & LOGIN API TESTS
 # =========================================================================
+
 
 @pytest.mark.asyncio
 async def test_register_and_login_flow(async_client: AsyncClient) -> None:
@@ -267,6 +271,7 @@ async def test_register_provider_flow(async_client: AsyncClient) -> None:
 # 5. REFRESH TOKEN ROTATION & REVOCATION TESTS
 # =========================================================================
 
+
 @pytest.mark.asyncio
 async def test_refresh_token_rotation_and_revocation(async_client: AsyncClient) -> None:
     uid = uuid.uuid4().hex[:6]
@@ -328,6 +333,7 @@ async def test_refresh_token_rotation_and_revocation(async_client: AsyncClient) 
 # =========================================================================
 # 6. GET /auth/me & RBAC / OBJECT-LEVEL AUTHORIZATION TESTS
 # =========================================================================
+
 
 @pytest.mark.asyncio
 async def test_auth_me_endpoint(async_client: AsyncClient) -> None:
@@ -406,6 +412,7 @@ def test_object_level_authorization_logic() -> None:
 # 7. AUDIT LOG INTEGRATION TESTS
 # =========================================================================
 
+
 @pytest.mark.asyncio
 async def test_audit_log_created_without_credentials(
     async_client: AsyncClient, db_session_factory: Any
@@ -452,6 +459,7 @@ async def test_audit_log_created_without_credentials(
 # 8. ACCOUNT STATUS (SUSPENDED/INACTIVE) TESTS
 # =========================================================================
 
+
 @pytest.mark.asyncio
 async def test_login_suspended_user_rejected(
     async_client: AsyncClient, db_session_factory: Any
@@ -494,6 +502,7 @@ async def test_login_suspended_user_rejected(
 # =========================================================================
 # 9. OTP HTTP API ENDPOINTS TEST
 # =========================================================================
+
 
 @pytest.mark.asyncio
 async def test_otp_api_endpoints_flow(async_client: AsyncClient) -> None:
@@ -542,6 +551,7 @@ async def test_otp_api_endpoints_flow(async_client: AsyncClient) -> None:
 # =========================================================================
 # 10. RBAC HTTP GUARDS & RATE LIMITER TESTS
 # =========================================================================
+
 
 @pytest.mark.asyncio
 async def test_rbac_guards_over_roles() -> None:
@@ -608,4 +618,3 @@ async def test_rate_limiter_logic() -> None:
     )
     assert is_allowed is False
     assert retry_after > 0
-

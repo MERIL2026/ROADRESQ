@@ -21,7 +21,6 @@ class ServiceResponse(BaseModel):
     updated_at: datetime | None = None
 
 
-
 class ServiceListResponse(BaseModel):
     services: list[ServiceResponse]
     total: int

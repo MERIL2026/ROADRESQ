@@ -39,10 +39,7 @@ class ProviderEligibilityService:
         ProviderVerificationStatus.ACTIVE.value,
     }
 
-
-    def __init__(
-        self, session: AsyncSession, redis: RedisClient | None = None
-    ) -> None:
+    def __init__(self, session: AsyncSession, redis: RedisClient | None = None) -> None:
         self.session = session
         self.redis = redis or redis_client
         self.provider_repo = ProviderRepository(session)
@@ -101,22 +98,12 @@ class ProviderEligibilityService:
             provider_id, service_id
         )
         if not provider_svc or not provider_svc.is_active:
-            reasons.append(
-                f"Provider does not actively offer service '{service_id}'."
-            )
+            reasons.append(f"Provider does not actively offer service '{service_id}'.")
             details["service_offered"] = False
         else:
             details["service_offered"] = True
-            p_from = (
-                str(provider_svc.price_from)
-                if provider_svc.price_from
-                else None
-            )
-            p_to = (
-                str(provider_svc.price_to)
-                if provider_svc.price_to
-                else None
-            )
+            p_from = str(provider_svc.price_from) if provider_svc.price_from else None
+            p_to = str(provider_svc.price_to) if provider_svc.price_to else None
             details["price_from"] = p_from
             details["price_to"] = p_to
 
@@ -173,9 +160,7 @@ class ProviderEligibilityService:
         await self._check_user_active(provider, reasons, details)
         self._check_verification_status(provider, reasons, details)
         await self._check_presence(provider, reasons, details)
-        await self._check_service_offered(
-            provider.id, service_id, reasons, details
-        )
+        await self._check_service_offered(provider.id, service_id, reasons, details)
         await self._check_availability_window(
             provider.id, target_time, reasons, details
         )

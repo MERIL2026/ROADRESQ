@@ -52,9 +52,7 @@ from app.services.audit_service import record_audit_event
 class ProviderServiceLayer:
     """Domain service for Provider operations, onboarding, and presence."""
 
-    def __init__(
-        self, session: AsyncSession, redis: RedisClient | None = None
-    ) -> None:
+    def __init__(self, session: AsyncSession, redis: RedisClient | None = None) -> None:
         self.session = session
         self.redis = redis or redis_client
         self.provider_repo = ProviderRepository(session)
@@ -160,9 +158,7 @@ class ProviderServiceLayer:
         provider = await self._get_provider_by_user(user_id)
         safe_url = storage_service.validate_file_url(data.file_url)
 
-        doc_num = (
-            data.document_number.strip() if data.document_number else None
-        )
+        doc_num = data.document_number.strip() if data.document_number else None
         doc = ProviderDocument(
             id=uuid.uuid4(),
             provider_id=provider.id,
@@ -192,9 +188,7 @@ class ProviderServiceLayer:
 
         return ProviderDocumentResponse.model_validate(doc)
 
-    async def list_documents(
-        self, user_id: uuid.UUID
-    ) -> ProviderDocumentListResponse:
+    async def list_documents(self, user_id: uuid.UUID) -> ProviderDocumentListResponse:
         provider = await self._get_provider_by_user(user_id)
         docs = await self.doc_repo.list_by_provider(provider.id)
         items = [ProviderDocumentResponse.model_validate(d) for d in docs]
@@ -252,9 +246,7 @@ class ProviderServiceLayer:
         self, user_id: uuid.UUID
     ) -> ProviderServiceListResponse:
         provider = await self._get_provider_by_user(user_id)
-        services = await self.svc_repo.list_by_provider(
-            provider.id, active_only=False
-        )
+        services = await self.svc_repo.list_by_provider(provider.id, active_only=False)
         items = []
         for ps in services:
             items.append(
@@ -348,9 +340,7 @@ class ProviderServiceLayer:
         user_agent: str | None = None,
     ) -> ProviderServiceResponse:
         provider = await self._get_provider_by_user(user_id)
-        ps = await self.svc_repo.get_by_provider_and_service(
-            provider.id, service_id
-        )
+        ps = await self.svc_repo.get_by_provider_and_service(provider.id, service_id)
         if not ps:
             raise NotFoundError(
                 message="Service capability not found for this provider.",
@@ -403,9 +393,7 @@ class ProviderServiceLayer:
         user_agent: str | None = None,
     ) -> None:
         provider = await self._get_provider_by_user(user_id)
-        ps = await self.svc_repo.get_by_provider_and_service(
-            provider.id, service_id
-        )
+        ps = await self.svc_repo.get_by_provider_and_service(provider.id, service_id)
         if not ps:
             raise NotFoundError(
                 message="Service capability not found for this provider.",
@@ -446,9 +434,7 @@ class ProviderServiceLayer:
             )
             for s in slots
         ]
-        return ProviderAvailabilityResponse(
-            provider_id=provider.id, slots=slot_schemas
-        )
+        return ProviderAvailabilityResponse(provider_id=provider.id, slots=slot_schemas)
 
     async def update_availability(
         self,
@@ -459,9 +445,7 @@ class ProviderServiceLayer:
     ) -> ProviderAvailabilityResponse:
         provider = await self._get_provider_by_user(user_id)
         slots_data = [s.model_dump() for s in data.slots]
-        created_slots = await self.avail_repo.replace_schedule(
-            provider.id, slots_data
-        )
+        created_slots = await self.avail_repo.replace_schedule(provider.id, slots_data)
 
         await record_audit_event(
             session=self.session,
@@ -483,9 +467,7 @@ class ProviderServiceLayer:
             )
             for s in created_slots
         ]
-        return ProviderAvailabilityResponse(
-            provider_id=provider.id, slots=slot_schemas
-        )
+        return ProviderAvailabilityResponse(provider_id=provider.id, slots=slot_schemas)
 
     # ==========================================================================
     # 3.5 Online / Offline Status Operations
@@ -519,9 +501,7 @@ class ProviderServiceLayer:
                         f"'{provider.verification_status}'. Account must be VERIFIED."
                     ),
                     code="PROVIDER_NOT_VERIFIED",
-                    details={
-                        "verification_status": provider.verification_status
-                    },
+                    details={"verification_status": provider.verification_status},
                 )
 
             approved_count = await self.doc_repo.count_approved(provider.id)
@@ -585,11 +565,9 @@ class ProviderServiceLayer:
         self, user_id: uuid.UUID
     ) -> ProviderDashboardMetricsResponse:
         provider = await self._get_provider_by_user(user_id)
-        active_count = (
-            await self.booking_query_repo.count_active_bookings(provider.id)
-        )
-        completed_count = (
-            await self.booking_query_repo.count_completed_bookings(provider.id)
+        active_count = await self.booking_query_repo.count_active_bookings(provider.id)
+        completed_count = await self.booking_query_repo.count_completed_bookings(
+            provider.id
         )
         total_docs = await self.doc_repo.count_total(provider.id)
         approved_docs = await self.doc_repo.count_approved(provider.id)

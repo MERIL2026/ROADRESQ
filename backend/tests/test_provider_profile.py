@@ -67,14 +67,17 @@ def customer_user() -> User:
 async def test_provider_reads_own_profile(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -96,9 +99,7 @@ async def test_provider_reads_own_profile(
 async def test_provider_updates_own_profile(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
         "business_name": "Ravi Modern Garage",
@@ -107,9 +108,16 @@ async def test_provider_updates_own_profile(
     }
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.record_audit_event", new_callable=AsyncMock) as mock_audit,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.record_audit_event", new_callable=AsyncMock
+        ) as mock_audit,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -130,12 +138,12 @@ async def test_provider_updates_own_profile(
 
 @pytest.mark.asyncio
 async def test_customer_cannot_access_provider_profile(customer_user: User) -> None:
-    token = create_access_token(
-        user_id=customer_user.id, role=UserRole.CUSTOMER.value
-    )
+    token = create_access_token(user_id=customer_user.id, role=UserRole.CUSTOMER.value)
     headers = {"Authorization": f"Bearer {token}"}
 
-    with patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get:
+    with patch(
+        "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+    ) as mock_user_get:
         mock_user_get.return_value = customer_user
 
         async with AsyncClient(
@@ -174,15 +182,15 @@ async def test_public_provider_response_sanitized(provider_record: Provider) -> 
 async def test_profile_update_validation_radius_bounds(
     provider_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     # Radius > 200 km is invalid
     payload = {"service_radius_km": 500.0}
 
-    with patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get:
+    with patch(
+        "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+    ) as mock_user_get:
         mock_user_get.return_value = provider_user
 
         async with AsyncClient(

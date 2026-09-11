@@ -115,9 +115,7 @@ class OTPVerifyRequest(BaseModel):
     code: str = Field(
         ..., min_length=4, max_length=8, description="Received numeric OTP code"
     )
-    purpose: str = Field(
-        default="LOGIN", max_length=30, description="OTP scope"
-    )
+    purpose: str = Field(default="LOGIN", max_length=30, description="OTP scope")
 
 
 class OTPVerifyResponse(BaseModel):

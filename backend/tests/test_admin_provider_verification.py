@@ -47,7 +47,6 @@ def provider_record() -> Provider:
     )
 
 
-
 @pytest.mark.asyncio
 async def test_non_admin_forbidden_from_admin_endpoints(
     provider_record: Provider,
@@ -65,7 +64,9 @@ async def test_non_admin_forbidden_from_admin_endpoints(
         status=UserStatus.ACTIVE.value,
     )
 
-    with patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get:
+    with patch(
+        "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+    ) as mock_user_get:
         mock_user_get.return_value = customer_user
 
         async with AsyncClient(
@@ -81,15 +82,21 @@ async def test_non_admin_forbidden_from_admin_endpoints(
 async def test_admin_lists_providers(
     admin_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=admin_user.id, role=UserRole.ADMIN.value
-    )
+    token = create_access_token(user_id=admin_user.id, role=UserRole.ADMIN.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.admin_provider_service.ProviderRepository.list_providers", new_callable=AsyncMock) as mock_list,
-        patch("app.services.admin_provider_service.ProviderRepository.count_providers", new_callable=AsyncMock) as mock_count,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.admin_provider_service.ProviderRepository.list_providers",
+            new_callable=AsyncMock,
+        ) as mock_list,
+        patch(
+            "app.services.admin_provider_service.ProviderRepository.count_providers",
+            new_callable=AsyncMock,
+        ) as mock_count,
     ):
         mock_user_get.return_value = admin_user
         mock_list.return_value = [provider_record]
@@ -112,9 +119,7 @@ async def test_admin_lists_providers(
 async def test_admin_verifies_provider_status(
     admin_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=admin_user.id, role=UserRole.ADMIN.value
-    )
+    token = create_access_token(user_id=admin_user.id, role=UserRole.ADMIN.value)
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
         "verification_status": ProviderVerificationStatus.VERIFIED.value,
@@ -122,9 +127,17 @@ async def test_admin_verifies_provider_status(
     }
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.admin_provider_service.ProviderRepository.get_by_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.admin_provider_service.record_audit_event", new_callable=AsyncMock) as mock_audit,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.admin_provider_service.ProviderRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.admin_provider_service.record_audit_event",
+            new_callable=AsyncMock,
+        ) as mock_audit,
     ):
         mock_user_get.return_value = admin_user
         mock_prov_get.return_value = provider_record
@@ -148,9 +161,7 @@ async def test_admin_verifies_provider_status(
 async def test_admin_approves_and_rejects_document(
     admin_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=admin_user.id, role=UserRole.ADMIN.value
-    )
+    token = create_access_token(user_id=admin_user.id, role=UserRole.ADMIN.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     doc = ProviderDocument(
@@ -162,10 +173,21 @@ async def test_admin_approves_and_rejects_document(
     )
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.admin_provider_service.ProviderRepository.get_by_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.admin_provider_service.ProviderDocumentRepository.get_by_id", new_callable=AsyncMock) as mock_doc_get,
-        patch("app.services.admin_provider_service.record_audit_event", new_callable=AsyncMock) as mock_audit,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.admin_provider_service.ProviderRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.admin_provider_service.ProviderDocumentRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_doc_get,
+        patch(
+            "app.services.admin_provider_service.record_audit_event",
+            new_callable=AsyncMock,
+        ) as mock_audit,
     ):
         mock_user_get.return_value = admin_user
         mock_prov_get.return_value = provider_record
@@ -197,14 +219,11 @@ async def test_admin_approves_and_rejects_document(
             assert mock_audit.called
 
 
-
 @pytest.mark.asyncio
 async def test_cross_provider_document_review_rejected(
     admin_user: User, provider_record: Provider
 ) -> None:
-    token = create_access_token(
-        user_id=admin_user.id, role=UserRole.ADMIN.value
-    )
+    token = create_access_token(user_id=admin_user.id, role=UserRole.ADMIN.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     # Document belongs to a different provider
@@ -217,9 +236,17 @@ async def test_cross_provider_document_review_rejected(
     )
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.admin_provider_service.ProviderRepository.get_by_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.admin_provider_service.ProviderDocumentRepository.get_by_id", new_callable=AsyncMock) as mock_doc_get,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.admin_provider_service.ProviderRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.admin_provider_service.ProviderDocumentRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_doc_get,
     ):
         mock_user_get.return_value = admin_user
         mock_prov_get.return_value = provider_record

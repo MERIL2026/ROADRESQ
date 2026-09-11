@@ -75,7 +75,9 @@ class VehicleService:
         items = [VehicleResponse.model_validate(v) for v in vehicles]
         return VehicleListResponse(vehicles=items, total=len(items))
 
-    async def get_vehicle(self, vehicle_id: uuid.UUID, user_id: uuid.UUID) -> VehicleResponse:
+    async def get_vehicle(
+        self, vehicle_id: uuid.UUID, user_id: uuid.UUID
+    ) -> VehicleResponse:
         vehicle = await self.vehicle_repo.get_by_id_and_user(vehicle_id, user_id)
         if not vehicle:
             raise NotFoundError(

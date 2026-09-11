@@ -73,9 +73,7 @@ class OTPService:
         )
 
         # 5. Set Resend Cooldown
-        await redis.set(
-            cooldown_key, "1", ex=settings.OTP_RESEND_COOLDOWN_SECONDS
-        )
+        await redis.set(cooldown_key, "1", ex=settings.OTP_RESEND_COOLDOWN_SECONDS)
 
         # In dev/testing, store plain OTP in test key for automated assertions
         if settings.DEBUG or settings.APP_ENV in ("development", "testing"):
@@ -85,9 +83,7 @@ class OTPService:
         return raw_otp, settings.OTP_EXPIRE_SECONDS
 
     @staticmethod
-    async def verify_otp(
-        phone: str, code: str, purpose: str = "AUTH"
-    ) -> bool:
+    async def verify_otp(phone: str, code: str, purpose: str = "AUTH") -> bool:
         """
         Verifies an OTP against the stored SHA-256 hash using constant-time comparison.
         Enforces maximum attempt bounds and single-use invalidation.

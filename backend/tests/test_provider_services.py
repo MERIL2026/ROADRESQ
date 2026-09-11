@@ -71,9 +71,7 @@ async def test_service_catalog_listing(catalog_service: Service) -> None:
 async def test_provider_adds_service_capability(
     provider_user: User, provider_record: Provider, catalog_service: Service
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
         "service_id": str(catalog_service.id),
@@ -82,11 +80,24 @@ async def test_provider_adds_service_capability(
     }
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ServiceRepository.get_by_id", new_callable=AsyncMock) as mock_cat_get,
-        patch("app.services.provider_service.ProviderServiceRepository.get_by_provider_and_service", new_callable=AsyncMock) as mock_dup_check,
-        patch("app.services.provider_service.record_audit_event", new_callable=AsyncMock),
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ServiceRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_cat_get,
+        patch(
+            "app.services.provider_service.ProviderServiceRepository.get_by_provider_and_service",
+            new_callable=AsyncMock,
+        ) as mock_dup_check,
+        patch(
+            "app.services.provider_service.record_audit_event", new_callable=AsyncMock
+        ),
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -111,9 +122,7 @@ async def test_provider_adds_service_capability(
 async def test_duplicate_service_mapping_rejected(
     provider_user: User, provider_record: Provider, catalog_service: Service
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     payload = {
         "service_id": str(catalog_service.id),
@@ -128,10 +137,21 @@ async def test_duplicate_service_mapping_rejected(
     )
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get,
-        patch("app.services.provider_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_get,
-        patch("app.services.provider_service.ServiceRepository.get_by_id", new_callable=AsyncMock) as mock_cat_get,
-        patch("app.services.provider_service.ProviderServiceRepository.get_by_provider_and_service", new_callable=AsyncMock) as mock_dup_check,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user_get,
+        patch(
+            "app.services.provider_service.ProviderRepository.get_by_user_id",
+            new_callable=AsyncMock,
+        ) as mock_prov_get,
+        patch(
+            "app.services.provider_service.ServiceRepository.get_by_id",
+            new_callable=AsyncMock,
+        ) as mock_cat_get,
+        patch(
+            "app.services.provider_service.ProviderServiceRepository.get_by_provider_and_service",
+            new_callable=AsyncMock,
+        ) as mock_dup_check,
     ):
         mock_user_get.return_value = provider_user
         mock_prov_get.return_value = provider_record
@@ -153,9 +173,7 @@ async def test_duplicate_service_mapping_rejected(
 async def test_invalid_price_range_rejected(
     provider_user: User, catalog_service: Service
 ) -> None:
-    token = create_access_token(
-        user_id=provider_user.id, role=UserRole.PROVIDER.value
-    )
+    token = create_access_token(user_id=provider_user.id, role=UserRole.PROVIDER.value)
     headers = {"Authorization": f"Bearer {token}"}
     # price_from > price_to is invalid
     payload = {
@@ -164,7 +182,9 @@ async def test_invalid_price_range_rejected(
         "price_to": 500.0,
     }
 
-    with patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user_get:
+    with patch(
+        "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+    ) as mock_user_get:
         mock_user_get.return_value = provider_user
 
         async with AsyncClient(

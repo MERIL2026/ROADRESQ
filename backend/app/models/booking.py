@@ -17,6 +17,7 @@ from app.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin, utc_now
 from app.models.enums import BookingStatus, BookingType, LocationType
 
 if TYPE_CHECKING:
+    from app.models.job import JobCard, ProviderLocationUpdate
     from app.models.provider import Provider
     from app.models.service import Service
     from app.models.user import User
@@ -94,6 +95,17 @@ class Booking(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     status_history: Mapped[list["BookingStatusHistory"]] = relationship(
         "BookingStatusHistory",
+        back_populates="booking",
+        cascade="all, delete-orphan",
+    )
+    job_card: Mapped["JobCard | None"] = relationship(
+        "JobCard",
+        back_populates="booking",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+    location_updates: Mapped[list["ProviderLocationUpdate"]] = relationship(
+        "ProviderLocationUpdate",
         back_populates="booking",
         cascade="all, delete-orphan",
     )

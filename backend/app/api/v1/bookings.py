@@ -11,6 +11,7 @@ from app.api.deps import (
     get_request_id,
     get_user_agent,
     require_customer,
+    require_provider,
 )
 from app.core.redis import RedisClient
 from app.models.user import User
@@ -22,8 +23,18 @@ from app.schemas.booking import (
     BookingResponse,
 )
 from app.schemas.common import APIResponse, ResponseMeta
+from app.schemas.estimate import EstimateCreateRequest, EstimateResponse
+from app.schemas.inspection import InspectionCreateRequest, InspectionResponse
+from app.schemas.job import JobCardResponse
+from app.schemas.tracking import (
+    ArrivalOTPGenerateResponse,
+    BookingLiveTrackingResponse,
+)
 from app.services.booking_service import BookingService
 from app.services.dispatch_service import DispatchService
+from app.services.estimate_service import EstimateService
+from app.services.job_service import JobService
+from app.services.tracking_service import TrackingService
 
 router = APIRouter(prefix="/bookings", tags=["Bookings & Assistance"])
 
@@ -62,9 +73,7 @@ async def create_booking(
     # Re-fetch latest booking status after dispatch offer creation
     updated_booking = await booking_service.booking_repo.get_by_id(booking.id)
     resp_data = (
-        BookingResponse.model_validate(updated_booking)
-        if updated_booking
-        else booking
+        BookingResponse.model_validate(updated_booking) if updated_booking else booking
     )
 
     return APIResponse(
@@ -159,5 +168,182 @@ async def cancel_booking(
 
     return APIResponse(
         data=cancelled,
+        meta=ResponseMeta(request_id=request_id),
+    )
+
+
+# ==============================================================================
+# Phase 5 Live Tracking, Arrival & Job Execution Endpoints
+# ==============================================================================
+
+
+@router.get(
+    "/{booking_id}/location",
+    response_model=APIResponse[BookingLiveTrackingResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve live tracking position, distance, and ETA for an active booking",
+)
+async def get_booking_location(
+    booking_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_db_session),
+    redis: RedisClient = Depends(get_redis),
+) -> APIResponse[BookingLiveTrackingResponse]:
+    request_id = get_request_id(request)
+    tracking_service = TrackingService(session, redis)
+    tracking_data = await tracking_service.get_booking_live_tracking(
+        booking_id=booking_id,
+        user_id=current_user.id,
+        user_role=current_user.role,
+    )
+    return APIResponse(
+        data=tracking_data,
+        meta=ResponseMeta(request_id=request_id),
+    )
+
+
+@router.post(
+    "/{booking_id}/arrival-otp",
+    response_model=APIResponse[ArrivalOTPGenerateResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Generate/retrieve 6-digit cryptographic Arrival OTP for customer",
+)
+async def generate_arrival_otp(
+    booking_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_db_session),
+    redis: RedisClient = Depends(get_redis),
+) -> APIResponse[ArrivalOTPGenerateResponse]:
+    request_id = get_request_id(request)
+    tracking_service = TrackingService(session, redis)
+    otp_resp = await tracking_service.generate_arrival_otp(
+        booking_id=booking_id,
+        user_id=current_user.id,
+        user_role=current_user.role,
+    )
+    return APIResponse(
+        data=otp_resp,
+        meta=ResponseMeta(request_id=request_id),
+    )
+
+
+@router.get(
+    "/{booking_id}/job-card",
+    response_model=APIResponse[JobCardResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve active JobCard operational work order for a booking",
+)
+async def get_job_card(
+    booking_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_db_session),
+    redis: RedisClient = Depends(get_redis),
+) -> APIResponse[JobCardResponse]:
+    request_id = get_request_id(request)
+    job_service = JobService(session, redis)
+    job_card = await job_service.get_job_card(
+        booking_id=booking_id,
+        user_id=current_user.id,
+        user_role=current_user.role,
+    )
+    return APIResponse(
+        data=job_card,
+        meta=ResponseMeta(request_id=request_id),
+    )
+
+
+@router.post(
+    "/{booking_id}/inspection",
+    response_model=APIResponse[InspectionResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Provider submits a multi-point vehicle inspection report with evidence",
+)
+async def create_inspection(
+    booking_id: uuid.UUID,
+    data: InspectionCreateRequest,
+    request: Request,
+    current_user: User = Depends(require_provider),
+    session: AsyncSession = Depends(get_db_session),
+    redis: RedisClient = Depends(get_redis),
+) -> APIResponse[InspectionResponse]:
+    request_id = get_request_id(request)
+    ip_address = get_client_ip(request)
+    user_agent = get_user_agent(request)
+
+    job_service = JobService(session, redis)
+    inspection = await job_service.create_inspection(
+        booking_id=booking_id,
+        user_id=current_user.id,
+        data=data,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+    await session.commit()
+
+    return APIResponse(
+        data=inspection,
+        meta=ResponseMeta(request_id=request_id),
+    )
+
+
+@router.get(
+    "/{booking_id}/inspection",
+    response_model=APIResponse[InspectionResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve latest recorded vehicle inspection report for a booking",
+)
+async def get_latest_inspection(
+    booking_id: uuid.UUID,
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    session: AsyncSession = Depends(get_db_session),
+    redis: RedisClient = Depends(get_redis),
+) -> APIResponse[InspectionResponse]:
+    request_id = get_request_id(request)
+    job_service = JobService(session, redis)
+    inspection = await job_service.get_latest_inspection(
+        booking_id=booking_id,
+        user_id=current_user.id,
+        user_role=current_user.role,
+    )
+    return APIResponse(
+        data=inspection,
+        meta=ResponseMeta(request_id=request_id),
+    )
+
+
+@router.post(
+    "/{booking_id}/estimates",
+    response_model=APIResponse[EstimateResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Provider creates a formal price estimate with itemized parts and labor",
+)
+async def create_estimate(
+    booking_id: uuid.UUID,
+    data: EstimateCreateRequest,
+    request: Request,
+    current_user: User = Depends(require_provider),
+    session: AsyncSession = Depends(get_db_session),
+    redis: RedisClient = Depends(get_redis),
+) -> APIResponse[EstimateResponse]:
+    request_id = get_request_id(request)
+    ip_address = get_client_ip(request)
+    user_agent = get_user_agent(request)
+
+    estimate_service = EstimateService(session, redis)
+    estimate = await estimate_service.create_estimate(
+        booking_id=booking_id,
+        user_id=current_user.id,
+        data=data,
+        ip_address=ip_address,
+        user_agent=user_agent,
+    )
+    await session.commit()
+
+    return APIResponse(
+        data=estimate,
         meta=ResponseMeta(request_id=request_id),
     )

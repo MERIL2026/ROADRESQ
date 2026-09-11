@@ -120,7 +120,9 @@ def platform_service() -> Service:
 
 
 @pytest.fixture
-def sample_booking(customer_user: User, customer_vehicle: Vehicle, platform_service: Service) -> Booking:
+def sample_booking(
+    customer_user: User, customer_vehicle: Vehicle, platform_service: Service
+) -> Booking:
     b = Booking(
         id=uuid.uuid4(),
         booking_number="BK-20260905-ABCD01",
@@ -178,17 +180,31 @@ async def test_register_vehicle_success(customer_user: User) -> None:
     )
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-        patch("app.services.vehicle_service.VehicleRepository.get_by_registration_number", new_callable=AsyncMock) as mock_check,
-        patch("app.services.vehicle_service.VehicleRepository.create", new_callable=AsyncMock) as mock_create,
-        patch("app.services.vehicle_service.record_audit_event", new_callable=AsyncMock),
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user,
+        patch(
+            "app.services.vehicle_service.VehicleRepository.get_by_registration_number",
+            new_callable=AsyncMock,
+        ) as mock_check,
+        patch(
+            "app.services.vehicle_service.VehicleRepository.create",
+            new_callable=AsyncMock,
+        ) as mock_create,
+        patch(
+            "app.services.vehicle_service.record_audit_event", new_callable=AsyncMock
+        ),
     ):
         mock_user.return_value = customer_user
         mock_check.return_value = None
         mock_create.return_value = new_vehicle
 
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            resp = await client.post("/api/v1/vehicles/me", json=payload, headers=headers)
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            resp = await client.post(
+                "/api/v1/vehicles/me", json=payload, headers=headers
+            )
 
     assert resp.status_code == 201
     data = resp.json()["data"]
@@ -203,36 +219,56 @@ async def test_provider_cannot_register_vehicle(provider_user: User) -> None:
     headers = {"Authorization": f"Bearer {token}"}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user,
     ):
         mock_user.return_value = provider_user
 
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            resp = await client.post("/api/v1/vehicles/me", json={"registration_number": "MH01XX0001"}, headers=headers)
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            resp = await client.post(
+                "/api/v1/vehicles/me",
+                json={"registration_number": "MH01XX0001"},
+                headers=headers,
+            )
 
     assert resp.status_code == 403
 
 
 @pytest.mark.asyncio
-async def test_list_my_vehicles_returns_list(customer_user: User, customer_vehicle: Vehicle) -> None:
+async def test_list_my_vehicles_returns_list(
+    customer_user: User, customer_vehicle: Vehicle
+) -> None:
     """Customer can list their registered vehicles."""
     token = create_access_token(user_id=customer_user.id, role=UserRole.CUSTOMER.value)
     headers = {"Authorization": f"Bearer {token}"}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-        patch("app.services.vehicle_service.VehicleRepository.list_by_user", new_callable=AsyncMock) as mock_list,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user,
+        patch(
+            "app.services.vehicle_service.VehicleRepository.list_by_user",
+            new_callable=AsyncMock,
+        ) as mock_list,
     ):
         mock_user.return_value = customer_user
         mock_list.return_value = [customer_vehicle]
 
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             resp = await client.get("/api/v1/vehicles/me", headers=headers)
 
     assert resp.status_code == 200
     result = resp.json()["data"]
     assert result["total"] == 1
-    assert result["vehicles"][0]["registration_number"] == customer_vehicle.registration_number
+    assert (
+        result["vehicles"][0]["registration_number"]
+        == customer_vehicle.registration_number
+    )
 
 
 # ==============================================================================
@@ -270,14 +306,37 @@ async def test_create_booking_success(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.services.booking_service.UserRepository.get_by_id", new_callable=AsyncMock) as mock_svc_user,
-            patch("app.services.booking_service.VehicleRepository.get_by_id_and_user", new_callable=AsyncMock) as mock_veh,
-            patch("app.services.booking_service.ServiceRepository.get_by_id", new_callable=AsyncMock) as mock_svc,
-            patch("app.repositories.booking.BookingRepository.create_booking", new_callable=AsyncMock) as mock_create,
-            patch("app.repositories.booking.BookingRepository.get_by_id", new_callable=AsyncMock) as mock_get,
-            patch("app.services.booking_service.record_audit_event", new_callable=AsyncMock),
-            patch("app.services.dispatch_service.DispatchService.initiate_dispatch", new_callable=AsyncMock) as mock_dispatch,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.services.booking_service.UserRepository.get_by_id",
+                new_callable=AsyncMock,
+            ) as mock_svc_user,
+            patch(
+                "app.services.booking_service.VehicleRepository.get_by_id_and_user",
+                new_callable=AsyncMock,
+            ) as mock_veh,
+            patch(
+                "app.services.booking_service.ServiceRepository.get_by_id",
+                new_callable=AsyncMock,
+            ) as mock_svc,
+            patch(
+                "app.repositories.booking.BookingRepository.create_booking",
+                new_callable=AsyncMock,
+            ) as mock_create,
+            patch(
+                "app.repositories.booking.BookingRepository.get_by_id",
+                new_callable=AsyncMock,
+            ) as mock_get,
+            patch(
+                "app.services.booking_service.record_audit_event",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "app.services.dispatch_service.DispatchService.initiate_dispatch",
+                new_callable=AsyncMock,
+            ) as mock_dispatch,
         ):
             mock_user.return_value = customer_user
             mock_svc_user.return_value = customer_user
@@ -287,8 +346,12 @@ async def test_create_booking_success(
             mock_get.return_value = sample_booking
             mock_dispatch.return_value = sample_booking
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-                resp = await client.post("/api/v1/bookings", json=payload, headers=headers)
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                resp = await client.post(
+                    "/api/v1/bookings", json=payload, headers=headers
+                )
     finally:
         app.dependency_overrides.pop(get_redis, None)
 
@@ -305,11 +368,15 @@ async def test_create_booking_requires_customer_role(provider_user: User) -> Non
     headers = {"Authorization": f"Bearer {token}"}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user,
     ):
         mock_user.return_value = provider_user
 
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             resp = await client.post(
                 "/api/v1/bookings",
                 json={
@@ -334,15 +401,25 @@ async def test_list_my_bookings(customer_user: User, sample_booking: Booking) ->
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.repositories.booking.BookingRepository.list_by_customer", new_callable=AsyncMock) as mock_list,
-            patch("app.repositories.booking.BookingRepository.count_by_customer", new_callable=AsyncMock) as mock_count,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.repositories.booking.BookingRepository.list_by_customer",
+                new_callable=AsyncMock,
+            ) as mock_list,
+            patch(
+                "app.repositories.booking.BookingRepository.count_by_customer",
+                new_callable=AsyncMock,
+            ) as mock_count,
         ):
             mock_user.return_value = customer_user
             mock_list.return_value = [sample_booking]
             mock_count.return_value = 1
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.get("/api/v1/bookings/me", headers=headers)
     finally:
         app.dependency_overrides.pop(get_redis, None)
@@ -354,7 +431,9 @@ async def test_list_my_bookings(customer_user: User, sample_booking: Booking) ->
 
 
 @pytest.mark.asyncio
-async def test_cancel_booking_success(customer_user: User, sample_booking: Booking) -> None:
+async def test_cancel_booking_success(
+    customer_user: User, sample_booking: Booking
+) -> None:
     """Customer can cancel a REQUESTED booking."""
     token = create_access_token(user_id=customer_user.id, role=UserRole.CUSTOMER.value)
     headers = {"Authorization": f"Bearer {token}"}
@@ -365,15 +444,28 @@ async def test_cancel_booking_success(customer_user: User, sample_booking: Booki
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.repositories.booking.BookingRepository.get_by_id", new_callable=AsyncMock) as mock_get,
-            patch("app.repositories.booking.BookingRepository.add_status_history", new_callable=AsyncMock),
-            patch("app.services.booking_service.record_audit_event", new_callable=AsyncMock),
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.repositories.booking.BookingRepository.get_by_id",
+                new_callable=AsyncMock,
+            ) as mock_get,
+            patch(
+                "app.repositories.booking.BookingRepository.add_status_history",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "app.services.booking_service.record_audit_event",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_user.return_value = customer_user
             mock_get.return_value = sample_booking
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.post(
                     f"/api/v1/bookings/{sample_booking.id}/cancel",
                     json={"cancellation_reason": "Changed my mind"},
@@ -388,7 +480,9 @@ async def test_cancel_booking_success(customer_user: User, sample_booking: Booki
 
 
 @pytest.mark.asyncio
-async def test_cancel_completed_booking_rejected(customer_user: User, sample_booking: Booking) -> None:
+async def test_cancel_completed_booking_rejected(
+    customer_user: User, sample_booking: Booking
+) -> None:
     """Cannot cancel a COMPLETED booking — state machine rejects it."""
     token = create_access_token(user_id=customer_user.id, role=UserRole.CUSTOMER.value)
     headers = {"Authorization": f"Bearer {token}"}
@@ -400,13 +494,20 @@ async def test_cancel_completed_booking_rejected(customer_user: User, sample_boo
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.repositories.booking.BookingRepository.get_by_id", new_callable=AsyncMock) as mock_get,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.repositories.booking.BookingRepository.get_by_id",
+                new_callable=AsyncMock,
+            ) as mock_get,
         ):
             mock_user.return_value = customer_user
             mock_get.return_value = sample_booking
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.post(
                     f"/api/v1/bookings/{sample_booking.id}/cancel",
                     json={"cancellation_reason": "Trying to cancel completed booking"},
@@ -439,13 +540,20 @@ async def test_customer_cannot_access_other_customers_booking(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.repositories.booking.BookingRepository.get_by_id_with_relations", new_callable=AsyncMock) as mock_get,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.repositories.booking.BookingRepository.get_by_id_with_relations",
+                new_callable=AsyncMock,
+            ) as mock_get,
         ):
             mock_user.return_value = customer_user
             mock_get.return_value = sample_booking
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.get(
                     f"/api/v1/bookings/{sample_booking.id}", headers=headers
                 )
@@ -476,15 +584,25 @@ async def test_provider_location_update_success(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.services.dispatch_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov_by_user,
-            patch("app.services.dispatch_service.ProviderRepository.get_by_id", new_callable=AsyncMock) as mock_prov_get,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.repositories.provider.ProviderRepository.get_by_user_id",
+                new_callable=AsyncMock,
+            ) as mock_prov_by_user,
+            patch(
+                "app.repositories.booking.BookingRepository.list_by_provider",
+                new_callable=AsyncMock,
+            ) as mock_list_bookings,
         ):
             mock_user.return_value = provider_user
             mock_prov_by_user.return_value = verified_provider
-            mock_prov_get.return_value = verified_provider
+            mock_list_bookings.return_value = []
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.put(
                     "/api/v1/providers/me/location",
                     json={"latitude": 19.076, "longitude": 72.877},
@@ -507,11 +625,15 @@ async def test_provider_location_invalid_coordinates(provider_user: User) -> Non
     headers = {"Authorization": f"Bearer {token}"}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user,
     ):
         mock_user.return_value = provider_user
 
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             resp = await client.put(
                 "/api/v1/providers/me/location",
                 json={"latitude": 999.0, "longitude": 72.877},  # invalid latitude
@@ -549,19 +671,38 @@ async def test_provider_accept_dispatch_offer_success(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.services.dispatch_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov,
-            patch("app.repositories.booking.BookingRepository.assign_provider_atomic", new_callable=AsyncMock) as mock_atomic,
-            patch("app.repositories.booking.BookingRepository.add_status_history", new_callable=AsyncMock),
-            patch("app.repositories.booking.BookingRepository.get_by_id", new_callable=AsyncMock) as mock_get,
-            patch("app.services.dispatch_service.record_audit_event", new_callable=AsyncMock),
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.services.dispatch_service.ProviderRepository.get_by_user_id",
+                new_callable=AsyncMock,
+            ) as mock_prov,
+            patch(
+                "app.repositories.booking.BookingRepository.assign_provider_atomic",
+                new_callable=AsyncMock,
+            ) as mock_atomic,
+            patch(
+                "app.repositories.booking.BookingRepository.add_status_history",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "app.repositories.booking.BookingRepository.get_by_id",
+                new_callable=AsyncMock,
+            ) as mock_get,
+            patch(
+                "app.services.dispatch_service.record_audit_event",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_user.return_value = provider_user
             mock_prov.return_value = verified_provider
             mock_atomic.return_value = True  # Assignment succeeded
             mock_get.return_value = sample_booking
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.post(
                     f"/api/v1/providers/me/dispatch/{sample_booking.id}/accept",
                     json={},
@@ -590,13 +731,20 @@ async def test_provider_accept_expired_offer_returns_409(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.services.dispatch_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.services.dispatch_service.ProviderRepository.get_by_user_id",
+                new_callable=AsyncMock,
+            ) as mock_prov,
         ):
             mock_user.return_value = provider_user
             mock_prov.return_value = verified_provider
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.post(
                     f"/api/v1/providers/me/dispatch/{sample_booking.id}/accept",
                     json={},
@@ -632,15 +780,25 @@ async def test_atomic_assignment_prevents_double_accept(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.services.dispatch_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov,
-            patch("app.repositories.booking.BookingRepository.assign_provider_atomic", new_callable=AsyncMock) as mock_atomic,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.services.dispatch_service.ProviderRepository.get_by_user_id",
+                new_callable=AsyncMock,
+            ) as mock_prov,
+            patch(
+                "app.repositories.booking.BookingRepository.assign_provider_atomic",
+                new_callable=AsyncMock,
+            ) as mock_atomic,
         ):
             mock_user.return_value = provider_user
             mock_prov.return_value = verified_provider
             mock_atomic.return_value = False  # Another provider already won
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.post(
                     f"/api/v1/providers/me/dispatch/{sample_booking.id}/accept",
                     json={},
@@ -671,16 +829,32 @@ async def test_provider_reject_dispatch_offer(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.services.dispatch_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov,
-            patch("app.repositories.booking.BookingRepository.add_status_history", new_callable=AsyncMock),
-            patch("app.services.dispatch_service.record_audit_event", new_callable=AsyncMock),
-            patch("app.services.dispatch_service.DispatchService.initiate_dispatch", new_callable=AsyncMock),
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.services.dispatch_service.ProviderRepository.get_by_user_id",
+                new_callable=AsyncMock,
+            ) as mock_prov,
+            patch(
+                "app.repositories.booking.BookingRepository.add_status_history",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "app.services.dispatch_service.record_audit_event",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "app.services.dispatch_service.DispatchService.initiate_dispatch",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_user.return_value = provider_user
             mock_prov.return_value = verified_provider
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.post(
                     f"/api/v1/providers/me/dispatch/{sample_booking.id}/reject",
                     json={"reason": "Too far away"},
@@ -714,17 +888,33 @@ async def test_provider_updates_booking_status_to_on_the_way(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.repositories.booking.BookingRepository.get_by_id", new_callable=AsyncMock) as mock_get,
-            patch("app.services.booking_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov,
-            patch("app.repositories.booking.BookingRepository.add_status_history", new_callable=AsyncMock),
-            patch("app.services.booking_service.record_audit_event", new_callable=AsyncMock),
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.repositories.booking.BookingRepository.get_by_id",
+                new_callable=AsyncMock,
+            ) as mock_get,
+            patch(
+                "app.services.booking_service.ProviderRepository.get_by_user_id",
+                new_callable=AsyncMock,
+            ) as mock_prov,
+            patch(
+                "app.repositories.booking.BookingRepository.add_status_history",
+                new_callable=AsyncMock,
+            ),
+            patch(
+                "app.services.booking_service.record_audit_event",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_user.return_value = provider_user
             mock_get.return_value = sample_booking
             mock_prov.return_value = verified_provider
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.patch(
                     f"/api/v1/providers/me/bookings/{sample_booking.id}/status",
                     json={"status": "ON_THE_WAY"},
@@ -753,15 +943,25 @@ async def test_invalid_booking_status_transition_rejected(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.repositories.booking.BookingRepository.get_by_id", new_callable=AsyncMock) as mock_get,
-            patch("app.services.booking_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.repositories.booking.BookingRepository.get_by_id",
+                new_callable=AsyncMock,
+            ) as mock_get,
+            patch(
+                "app.services.booking_service.ProviderRepository.get_by_user_id",
+                new_callable=AsyncMock,
+            ) as mock_prov,
         ):
             mock_user.return_value = provider_user
             mock_get.return_value = sample_booking
             mock_prov.return_value = verified_provider
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.patch(
                     f"/api/v1/providers/me/bookings/{sample_booking.id}/status",
                     json={"status": "COMPLETED"},  # Illegal jump: REQUESTED → COMPLETED
@@ -790,8 +990,13 @@ async def test_admin_list_bookings(admin_user: User, sample_booking: Booking) ->
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.services.booking_service.BookingService.list_all_bookings", new_callable=AsyncMock) as mock_list,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.services.booking_service.BookingService.list_all_bookings",
+                new_callable=AsyncMock,
+            ) as mock_list,
         ):
             mock_user.return_value = admin_user
             mock_list.return_value = BookingListResponse(
@@ -801,7 +1006,9 @@ async def test_admin_list_bookings(admin_user: User, sample_booking: Booking) ->
                 page_size=20,
             )
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
                 resp = await client.get("/api/v1/admin/bookings", headers=headers)
     finally:
         app.dependency_overrides.pop(get_redis, None)
@@ -818,11 +1025,15 @@ async def test_customer_cannot_access_admin_bookings(customer_user: User) -> Non
     headers = {"Authorization": f"Bearer {token}"}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user,
     ):
         mock_user.return_value = customer_user
 
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             resp = await client.get("/api/v1/admin/bookings", headers=headers)
 
     assert resp.status_code == 403
@@ -835,11 +1046,15 @@ async def test_provider_cannot_access_admin_bookings(provider_user: User) -> Non
     headers = {"Authorization": f"Bearer {token}"}
 
     with (
-        patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
+        patch(
+            "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+        ) as mock_user,
     ):
         mock_user.return_value = provider_user
 
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as client:
             resp = await client.get("/api/v1/admin/bookings", headers=headers)
 
     assert resp.status_code == 403
@@ -923,14 +1138,23 @@ async def test_get_active_dispatch_offers_empty(
 
     try:
         with (
-            patch("app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock) as mock_user,
-            patch("app.services.dispatch_service.ProviderRepository.get_by_user_id", new_callable=AsyncMock) as mock_prov,
+            patch(
+                "app.api.deps.UserRepository.get_by_id", new_callable=AsyncMock
+            ) as mock_user,
+            patch(
+                "app.services.dispatch_service.ProviderRepository.get_by_user_id",
+                new_callable=AsyncMock,
+            ) as mock_prov,
         ):
             mock_user.return_value = provider_user
             mock_prov.return_value = verified_provider
 
-            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-                resp = await client.get("/api/v1/providers/me/dispatch/offers", headers=headers)
+            async with AsyncClient(
+                transport=ASGITransport(app=app), base_url="http://test"
+            ) as client:
+                resp = await client.get(
+                    "/api/v1/providers/me/dispatch/offers", headers=headers
+                )
     finally:
         app.dependency_overrides.pop(get_redis, None)
 
@@ -943,7 +1167,9 @@ async def test_get_active_dispatch_offers_empty(
 @pytest.mark.asyncio
 async def test_unauthenticated_cannot_access_dispatch_offers() -> None:
     """Unauthenticated access to dispatch offers returns 401."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
         resp = await client.get("/api/v1/providers/me/dispatch/offers")
 
     assert resp.status_code == 401

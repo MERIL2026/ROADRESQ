@@ -61,7 +61,9 @@ async def test_fully_eligible_provider_evaluates_true(
     redis.get.return_value = "online"
 
     # Evaluation time: Monday 10:30 AM
-    eval_time = datetime(2026, 9, 7, 10, 30, 0, tzinfo=UTC)  # 2026-09-07 is Monday (weekday=0)
+    eval_time = datetime(
+        2026, 9, 7, 10, 30, 0, tzinfo=UTC
+    )  # 2026-09-07 is Monday (weekday=0)
 
     # Active capability
     provider_svc = ProviderService(
@@ -86,9 +88,7 @@ async def test_fully_eligible_provider_evaluates_true(
     service = ProviderEligibilityService(session=session, redis=redis)
     service.provider_repo.get_by_id = AsyncMock(return_value=eligible_provider)
     service.user_repo.get_by_id = AsyncMock(return_value=active_user)
-    service.svc_repo.get_by_provider_and_service = AsyncMock(
-        return_value=provider_svc
-    )
+    service.svc_repo.get_by_provider_and_service = AsyncMock(return_value=provider_svc)
     service.avail_repo.list_by_provider = AsyncMock(return_value=[avail_slot])
 
     result = await service.evaluate_provider_eligibility(
@@ -143,9 +143,7 @@ async def test_ineligible_when_pending_verification(
     redis = AsyncMock()
 
     # Status is PENDING
-    eligible_provider.verification_status = (
-        ProviderVerificationStatus.PENDING.value
-    )
+    eligible_provider.verification_status = ProviderVerificationStatus.PENDING.value
 
     service = ProviderEligibilityService(session=session, redis=redis)
     service.provider_repo.get_by_id = AsyncMock(return_value=eligible_provider)
@@ -196,9 +194,7 @@ async def test_ineligible_when_outside_availability_hours(
     service = ProviderEligibilityService(session=session, redis=redis)
     service.provider_repo.get_by_id = AsyncMock(return_value=eligible_provider)
     service.user_repo.get_by_id = AsyncMock(return_value=active_user)
-    service.svc_repo.get_by_provider_and_service = AsyncMock(
-        return_value=provider_svc
-    )
+    service.svc_repo.get_by_provider_and_service = AsyncMock(return_value=provider_svc)
     service.avail_repo.list_by_provider = AsyncMock(return_value=[avail_slot])
 
     result = await service.evaluate_provider_eligibility(

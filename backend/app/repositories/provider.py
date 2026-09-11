@@ -37,9 +37,7 @@ class ProviderRepository(BaseRepository[Provider]):
         res = await self.session.execute(stmt)
         return res.scalar_one_or_none()
 
-    async def get_by_id_with_relations(
-        self, provider_id: uuid.UUID
-    ) -> Provider | None:
+    async def get_by_id_with_relations(self, provider_id: uuid.UUID) -> Provider | None:
         stmt = (
             select(Provider)
             .where(Provider.id == provider_id)
@@ -128,12 +126,9 @@ class ProviderDocumentRepository(BaseRepository[ProviderDocument]):
         return res.scalars().all()
 
     async def count_approved(self, provider_id: uuid.UUID) -> int:
-        stmt = (
-            select(func.count(ProviderDocument.id))
-            .where(
-                ProviderDocument.provider_id == provider_id,
-                ProviderDocument.status == ProviderDocumentStatus.APPROVED.value,
-            )
+        stmt = select(func.count(ProviderDocument.id)).where(
+            ProviderDocument.provider_id == provider_id,
+            ProviderDocument.status == ProviderDocumentStatus.APPROVED.value,
         )
         res = await self.session.execute(stmt)
         return res.scalar_one() or 0

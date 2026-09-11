@@ -4,29 +4,10 @@ from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
-
-class ProviderLocationPingRequest(BaseModel):
-    latitude: float = Field(
-        ...,
-        ge=-90.0,
-        le=90.0,
-        description="Current latitude coordinate of the provider",
-        examples=[19.0760],
-    )
-    longitude: float = Field(
-        ...,
-        ge=-180.0,
-        le=180.0,
-        description="Current longitude coordinate of the provider",
-        examples=[72.8777],
-    )
-
-
-class ProviderLocationResponse(BaseModel):
-    provider_id: uuid.UUID
-    latitude: float
-    longitude: float
-    updated_at: datetime
+from app.schemas.tracking import (
+    ProviderLocationPingRequest,
+    ProviderLocationResponse,
+)
 
 
 class DispatchOfferResponse(BaseModel):
@@ -58,8 +39,8 @@ class DispatchAcceptRequest(BaseModel):
 class DispatchRejectRequest(BaseModel):
     reason: str | None = Field(
         None,
-        max_length=255,
-        description="Optional reason why provider rejected this dispatch offer",
+        max_length=500,
+        description="Optional reason for rejecting dispatch offer",
     )
 
 
@@ -68,3 +49,14 @@ class DispatchAcceptResponse(BaseModel):
     booking_number: str
     status: str
     message: str
+
+
+__all__ = [
+    "DispatchAcceptRequest",
+    "DispatchAcceptResponse",
+    "DispatchOfferListResponse",
+    "DispatchOfferResponse",
+    "DispatchRejectRequest",
+    "ProviderLocationPingRequest",
+    "ProviderLocationResponse",
+]
